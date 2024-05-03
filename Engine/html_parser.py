@@ -17,13 +17,15 @@ class HTMLParser:
         for child_tag in tag.children:
             if isinstance(child_tag, element.Tag):
                 child_tag.attrs["tag"] = child_tag.name
-                child_tag.attrs["text"] = child_tag.text
-                child_tag.attrs["html"] = str(child_tag)
+                child_tag.attrs["text"] = child_tag.text.replace('\n', '')
+                child_tag.attrs["html"] = str(child_tag).replace('\n', '')
 
                 if child_tag.name in TEXT_TAGS:
-                    self.styled_text.html_text += f"{child_tag.attrs['html']}\n"
-                    continue
+                    # check if tag's text is empty
+                    if child_tag.attrs["text"].replace(' ', '') == "": continue
 
+                    self.styled_text.html_text += f"{child_tag.attrs['html']}\n"
+                    
                 parent_element.children.append(Element(child_tag.name, child_tag.attrs))
 
                 self.recurse_tag_children(child_tag, parent_element.children[-1])
