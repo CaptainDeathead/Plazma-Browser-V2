@@ -94,7 +94,7 @@ class Window:
                     
                 self.manager.process_events(event)
 
-            self.screen.blit(self.renderer.html_parser.styled_text.rendered_text, (0, 50))
+            self.screen.blit(self.renderer.styled_text.rendered_text, (0, 50))
                 
             self.manager.update(time_delta)
                     

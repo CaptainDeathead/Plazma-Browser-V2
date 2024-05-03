@@ -5,13 +5,12 @@ from bs4 import BeautifulSoup, element
 from pygame_gui import UIManager
 from Ui.elements import USE_TEXTBOX_TAGS, TEXT_TAGS
 from Engine.STR.renderer import StyledText
-from config import WIDTH, HEIGHT
 
 class HTMLParser:
-    def __init__(self, manager: UIManager):
+    def __init__(self, manager: UIManager, styled_text: StyledText):
         self.document: Document = Document()
         self.manager: UIManager = manager
-        self.styled_text: StyledText = StyledText("\n", WIDTH, HEIGHT, (0, 0, 0), (255, 255, 255), "Calibri", 16, (2, 5, 2, 5))
+        self.styled_text: StyledText = styled_text
         self.curr_y: int = 50
 
     def recurse_tag_children(self, tag: element.Tag, parent_element: Element):
