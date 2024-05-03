@@ -14,7 +14,7 @@ class HTMLParser:
         self.styled_text: StyledText = StyledText("\n", WIDTH, HEIGHT, (0, 0, 0), (255, 255, 255), "Calibri", 16, (2, 5, 2, 5))
         self.curr_y: int = 50
 
-    def recurse_tag_children(self, tag: element.Tag):
+    def recurse_tag_children(self, tag: element.Tag, parent_element: Element):
         for child_tag in tag.children:
             if isinstance(child_tag, element.Tag):
                 child_tag.attrs["tag"] = child_tag.name
@@ -25,14 +25,18 @@ class HTMLParser:
                     self.styled_text.html_text += f"{child_tag.attrs['html']}\n"
                     continue
 
-                self.recurse_tag_children(child_tag)
+                parent_element.children.append(Element(child_tag.name, child_tag.attrs))
+
+                self.recurse_tag_children(child_tag, parent_element.children[-1])
         
     def parseHTML(self, html: str):
         soup = BeautifulSoup(html, 'html.parser')
 
         first_elem = soup.find()
 
-        self.recurse_tag_children(first_elem)
+        self.document.html_element = Element(first_elem.name, first_elem.attrs)
+
+        self.recurse_tag_children(first_elem, self.document.html_element)
         self.styled_text.render()
 
         return self.document
