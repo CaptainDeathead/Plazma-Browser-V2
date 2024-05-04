@@ -27,7 +27,7 @@ class HTMLParser:
                     # check if tag's text is empty
                     if child_tag.attrs["text"].replace(' ', '') == "": continue
 
-                    self.styled_text.html_text += f"{child_tag.attrs['html']}\n"
+                    self.styled_text.html_text += f"{child_tag.attrs['html']}\n\n"
                     
                 parent_element.children.append(Element(child_tag.name, child_tag.attrs))
 
