@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup, element
 from pygame_gui import UIManager
 from Ui.elements import USE_TEXTBOX_TAGS, TEXT_TAGS
 from Engine.STR.renderer import StyledText
+from pygame.display import set_caption
 
 class HTMLParser:
     def __init__(self, manager: UIManager, styled_text: StyledText):
@@ -19,6 +20,8 @@ class HTMLParser:
                 child_tag.attrs["tag"] = child_tag.name
                 child_tag.attrs["text"] = child_tag.text.replace('\n', '')
                 child_tag.attrs["html"] = str(child_tag).replace('\n', '')
+
+                if child_tag.name == "title": set_caption(f"Plazma Browser (Dev) | {child_tag.attrs['text']}")
 
                 if child_tag.name in TEXT_TAGS:
                     # check if tag's text is empty

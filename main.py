@@ -78,6 +78,8 @@ class Window:
             return "unknown_error.html"
         
     def main(self):
+        pg.display.set_caption("Plazma Browser (Dev) | New tab")
+
         clock: pg.time.Clock = pg.time.Clock()
         while 1:
             time_delta = clock.tick(60)/1000.0
