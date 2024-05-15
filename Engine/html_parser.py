@@ -13,8 +13,11 @@ class HTMLParser:
         self.manager: UIManager = manager
         self.styled_text: StyledText = styled_text
         self.curr_y: int = 50
+        self.stop_loading: bool = False
 
     def recurse_tag_children(self, tag: element.Tag, parent_element: Element) -> None:
+        if self.stop_loading: return
+        
         for child_tag in tag.children:
             if isinstance(child_tag, element.Tag):
                 child_tag.attrs["tag"] = child_tag.name
@@ -33,7 +36,7 @@ class HTMLParser:
 
                 self.recurse_tag_children(child_tag, parent_element.children[-1])
         
-    def parseHTML(self, html: str) -> Document:
+    def parseHTML(self, html: str, thread_id: int = 0) -> Document | None:
         soup = BeautifulSoup(html, 'html.parser')
 
         first_elem = soup.find()
@@ -41,6 +44,8 @@ class HTMLParser:
         self.document.html_element = Element(first_elem.name, first_elem.attrs)
 
         self.recurse_tag_children(first_elem, self.document.html_element)
+        if self.stop_loading: return None
+
         self.styled_text.render()
 
         return self.document

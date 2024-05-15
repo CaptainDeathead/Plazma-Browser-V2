@@ -3,8 +3,10 @@ import requests
 from io import TextIOWrapper
 from Engine.DOM.document import Document
 from Engine.renderer import Renderer
-from threading import Thread
 from config import HTML_LOAD_THREAD
+from Engine.threads import LoaderThread
+
+loader_thread: LoaderThread = None
 
 def load_html(renderer: Renderer, html: str, mutable_document_class: Document | None) -> Document:
     if HTML_LOAD_THREAD:
@@ -22,7 +24,16 @@ def load_blocking(renderer: Renderer, html: str) -> Document:
     return document
 
 def load_nonblocking(renderer: Renderer, html: str, mutable_document_class: Document) -> Document:
-    loader_thread: Thread = Thread(target=renderer.loadHTML_NonBlocking, args=(html, mutable_document_class,), daemon=True)
+    global loader_thread
+
+    if loader_thread is not None:
+        renderer.html_parser.stop_loading = True
+        loader_thread.join()
+
+        renderer.html_parser.stop_loading = False
+        loader_thread = None
+
+    loader_thread = LoaderThread(target=renderer.loadHTML_NonBlocking, args=(html, mutable_document_class,), daemon=True)
     loader_thread.start()
 
     return mutable_document_class
@@ -32,17 +43,14 @@ def transfer_response(renderer: Renderer, response: requests.Response | TextIOWr
     
     if type(response) == str:
         logging.warning("Recieved error! Parsing error page...")
-        #document = renderer.loadHTML(open(f"./Pages/Error/{response}", "r").read())
         document = load_html(renderer, open(f"./Pages/Error/{response}", "r").read(), document)
         
     elif type(response) == TextIOWrapper:
         logging.debug("Recieved response. Parsing contents...")
-        #document = renderer.loadHTML(response.read())
         document = load_html(renderer, response.read(), document)
         
     else:
         logging.debug("Recieved response. Parsing contents...")
-        #document = renderer.loadHTML(response.content.decode(encoding='utf-8', errors='surrogateescape'))
         document = load_html(renderer, response.content.decode(encoding='utf-8', errors='surrogateescape'), document)
 
     return document

@@ -12,11 +12,14 @@ class Renderer:
         self.styled_text: StyledText = StyledText("\n", WIN_WIDTH, WIN_HEIGHT, (0, 0, 0), (255, 255, 255), "Calibri", 16, (2, 20, 2, 20))
         self.html_parser: HTMLParser = HTMLParser(self.manager, self.styled_text)
 
-    def loadHTML(self, html: str) -> Document:
+    def loadHTML(self, html: str) -> Document | None:
         # clear text
         self.styled_text.html_text = "\n"
 
         return self.html_parser.parseHTML(html)
     
     def loadHTML_NonBlocking(self, html: str, mutable_document_class: Document) -> None:
-        mutable_document_class = self.loadHTML(html)
+        loaded_html: Document | None = self.loadHTML(html)
+        
+        if loaded_html is not None:
+            mutable_document_class = loaded_html
