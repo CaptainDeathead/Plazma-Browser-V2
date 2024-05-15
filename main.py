@@ -5,7 +5,9 @@ from Engine.renderer import Renderer
 import requests
 import logging
 from Engine.DOM.document import Document
-from io import TextIOWrapper
+from Engine.loader import transfer_response, get_page
+from threading import Thread
+from config import *
 
 logging.basicConfig()
 logging.root.setLevel(logging.NOTSET)
@@ -15,70 +17,21 @@ pg.init()
 
 class Window:
     def __init__(self):
-        self.screen: pg.Surface = pg.display.set_mode((800, 600))
-        self.manager: pgu.UIManager = pgu.UIManager((800, 600))
+        self.screen: pg.Surface = pg.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
+        self.manager: pgu.UIManager = pgu.UIManager((WIN_WIDTH, WIN_HEIGHT))
         self.renderer: Renderer = Renderer(self.manager)
         self.document: Document = Document()
         
         self.search_bar: SearchBar = SearchBar(pg.Rect(200, 10, 400, 30), self.manager)
-
-    def transfer_response(self, response: requests.Response | TextIOWrapper | str) -> None:
-        if type(response) == str:
-            logging.warning("Recieved error! Parsing error page...")
-            self.document = self.renderer.loadHTML(open(f"./Pages/Error/{response}", "r").read())
-            
-        elif type(response) == TextIOWrapper:
-            logging.debug("Recieved response. Parsing contents...")
-            self.document = self.renderer.loadHTML(response.read())
-            
-        else:
-            logging.debug("Recieved response. Parsing contents...")
-            self.document = self.renderer.loadHTML(response.content.decode())
-
-    def get_page(self, url: str) -> requests.Response | str:
-        if "file://" in url and url.index("file://") == 0:
-            logging.debug(f"Attempting to open file: '{url}'.")
-            
-            try:
-                return open(url.removeprefix("file://"), "r")
-            
-            except FileNotFoundError:
-                logging.error("Cannot find file!")
-                return "file_not_found.html"
-            
-            except Exception as e:
-                logging.error(f"Cannot open file due to an unknown exception: '{e}'!")
-                return "unknown_error.html"
-        
-        logging.debug(f"Attempting to connect to url: '{url}'.")
-
-        try:
-            response: requests.Response = requests.get(url, timeout=10, allow_redirects=True)
-            logging.debug("Connection succeeded! Progressing to html parsing...")
-            return response
-
-        except (requests.ConnectionError, requests.ConnectTimeout, requests.Timeout):
-            logging.error(f"Connection to: '{url}' failed due to a connection error!")
-            return "connection_error.html"
-        
-        except requests.exceptions.HTTPError:
-            logging.error(f"Connection to: '{url}' failed due to an invalid HTTP response!")
-            return "http_error.html"
-        
-        except requests.TooManyRedirects:
-            logging.error(f"Connection to: '{url}' failed because it attempted too many redirects!")
-            return "redirect_error.html"
-        
-        except requests.exceptions.MissingSchema:
-            logging.error(f"Connection to: '{url}' failed because it is an invalid url!")
-            return "invalid_url_error.html"
-        
-        except Exception as e:
-            logging.error(f"Connection to: '{url}' failed due to an unknown exception: '{e}'!")
-            return "unknown_error.html"
         
     def main(self):
         pg.display.set_caption("Plazma Browser (Dev) | New tab")
+
+        if DEBUG_MODE:
+            logging.debug("DEBUG_MODE=True; Loading test page...")
+            self.search_bar.set_text(BROWSER_TEST_URL)
+            response: requests.Response | str = get_page(BROWSER_TEST_URL)
+            self.document = transfer_response(self.renderer, response)
 
         clock: pg.time.Clock = pg.time.Clock()
         while 1:
@@ -91,8 +44,8 @@ class Window:
                     exit()
                     
                 elif event.type == pgu.UI_TEXT_ENTRY_FINISHED:
-                    response: requests.Response | str = self.get_page(self.search_bar.text)
-                    self.transfer_response(response)
+                    response: requests.Response | str = get_page(self.search_bar.text)
+                    self.document = transfer_response(self.renderer, response)
                     
                 self.manager.process_events(event)
 

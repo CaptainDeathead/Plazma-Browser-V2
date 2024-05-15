@@ -8,13 +8,13 @@ from Engine.STR.renderer import StyledText
 from pygame.display import set_caption
 
 class HTMLParser:
-    def __init__(self, manager: UIManager, styled_text: StyledText):
+    def __init__(self, manager: UIManager, styled_text: StyledText) -> None:
         self.document: Document = Document()
         self.manager: UIManager = manager
         self.styled_text: StyledText = styled_text
         self.curr_y: int = 50
 
-    def recurse_tag_children(self, tag: element.Tag, parent_element: Element):
+    def recurse_tag_children(self, tag: element.Tag, parent_element: Element) -> None:
         for child_tag in tag.children:
             if isinstance(child_tag, element.Tag):
                 child_tag.attrs["tag"] = child_tag.name
@@ -33,7 +33,7 @@ class HTMLParser:
 
                 self.recurse_tag_children(child_tag, parent_element.children[-1])
         
-    def parseHTML(self, html: str):
+    def parseHTML(self, html: str) -> Document:
         soup = BeautifulSoup(html, 'html.parser')
 
         first_elem = soup.find()
