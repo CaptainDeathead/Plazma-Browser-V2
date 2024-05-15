@@ -3,21 +3,47 @@ import requests
 from io import TextIOWrapper
 from Engine.DOM.document import Document
 from Engine.renderer import Renderer
+from threading import Thread
+from config import HTML_LOAD_THREAD
+
+def load_html(renderer: Renderer, html: str, mutable_document_class: Document | None) -> Document:
+    if HTML_LOAD_THREAD:
+        if mutable_document_class is None:
+            raise Exception("Attempting to use separate thread for html loading but no mutable document class was found!")
+        
+        return load_nonblocking(renderer, html, mutable_document_class)
+    
+    else:
+        return load_blocking(renderer, html)    
+
+def load_blocking(renderer: Renderer, html: str) -> Document:
+    document: Document = renderer.loadHTML(html)
+
+    return document
+
+def load_nonblocking(renderer: Renderer, html: str, mutable_document_class: Document) -> Document:
+    loader_thread: Thread = Thread(target=renderer.loadHTML_NonBlocking, args=(html, mutable_document_class,), daemon=True)
+    loader_thread.start()
+
+    return mutable_document_class
 
 def transfer_response(renderer: Renderer, response: requests.Response | TextIOWrapper | str) -> Document:
     document: Document = Document()
     
     if type(response) == str:
         logging.warning("Recieved error! Parsing error page...")
-        document = renderer.loadHTML(open(f"./Pages/Error/{response}", "r").read())
+        #document = renderer.loadHTML(open(f"./Pages/Error/{response}", "r").read())
+        document = load_html(renderer, open(f"./Pages/Error/{response}", "r").read(), document)
         
     elif type(response) == TextIOWrapper:
         logging.debug("Recieved response. Parsing contents...")
-        document = renderer.loadHTML(response.read())
+        #document = renderer.loadHTML(response.read())
+        document = load_html(renderer, response.read(), document)
         
     else:
         logging.debug("Recieved response. Parsing contents...")
-        document = renderer.loadHTML(response.content.decode(encoding='utf-8', errors='surrogateescape'))
+        #document = renderer.loadHTML(response.content.decode(encoding='utf-8', errors='surrogateescape'))
+        document = load_html(renderer, response.content.decode(encoding='utf-8', errors='surrogateescape'), document)
 
     return document
 
