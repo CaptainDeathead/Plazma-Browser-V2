@@ -1,3 +1,4 @@
+import logging
 from Engine.DOM.document import Document
 from Engine.DOM.element import Element
 from typing import List
@@ -47,5 +48,7 @@ class HTMLParser:
         if self.stop_loading: return None
 
         self.styled_text.render()
+
+        logging.debug("Finished parsing html!")
 
         return self.document

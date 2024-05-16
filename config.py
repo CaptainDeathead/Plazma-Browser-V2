@@ -11,4 +11,5 @@ DEBUG_MODE: bool = True
 
 
 # testing
-BROWSER_TEST_URL: str = "https://en.wikipedia.org/wiki/web_browser"
+#BROWSER_TEST_URL: str = "https://en.wikipedia.org/wiki/web_browser"
+BROWSER_TEST_URL: str = "file://test.html"
