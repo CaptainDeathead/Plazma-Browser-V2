@@ -1,12 +1,14 @@
 import logging
 from Engine.DOM.document import Document
 from Engine.DOM.element import Element
-from typing import List
+from typing import Dict
 from bs4 import BeautifulSoup, element
 from pygame_gui import UIManager
 from Ui.elements import USE_TEXTBOX_TAGS, TEXT_TAGS
 from Engine.STR.renderer import StyledText
 from pygame.display import set_caption
+from css_parser import parseString
+from css_parser.css import CSSStyleSheet, CSSRuleList, CSSRule
 
 class HTMLParser:
     def __init__(self, manager: UIManager, styled_text: StyledText) -> None:
@@ -31,7 +33,18 @@ class HTMLParser:
                     # check if tag's text is empty
                     if child_tag.attrs["text"].replace(' ', '') == "": continue
 
-                    self.styled_text.html_text += f"{child_tag.attrs['html']}\n\n"
+                    tag_styles: Dict[str, any] = {}
+
+                    if "style" in child_tag.attrs:
+                        styles = child_tag.attrs["style"]
+
+                        sheet: CSSStyleSheet = parseString(child_tag.name + "{ " + styles + " }")
+                        
+                        for rule in sheet:
+                            for property in rule.style:
+                                tag_styles[property.name] = property.value
+
+                    self.styled_text.renderText(f"{child_tag.attrs['html']}\n\n", tag_styles)
                     
                 parent_element.children.append(Element(child_tag.name, child_tag.attrs))
 
@@ -46,8 +59,6 @@ class HTMLParser:
 
         self.recurse_tag_children(first_elem, self.document.html_element)
         if self.stop_loading: return None
-
-        self.styled_text.render()
 
         logging.debug("Finished parsing html!")
 

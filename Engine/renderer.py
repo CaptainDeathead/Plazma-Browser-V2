@@ -14,7 +14,7 @@ class Renderer:
 
     def loadHTML(self, html: str) -> Document | None:
         # clear text
-        self.styled_text.html_text = "\n"
+        self.styled_text.clear()
 
         return self.html_parser.parseHTML(html)
     
