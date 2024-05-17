@@ -1,3 +1,4 @@
+import pygame as pg
 import logging
 from Engine.DOM.document import Document
 from Engine.DOM.element import Element
@@ -29,11 +30,12 @@ class HTMLParser:
 
                 if child_tag.name == "title": set_caption(f"Plazma Browser (Dev) | {child_tag.attrs['text']}")
 
+                text_rect: pg.Rect = None
+                tag_styles: Dict[str, any] = {}
+
                 if child_tag.name in TEXT_TAGS:
                     # check if tag's text is empty
                     if child_tag.attrs["text"].replace(' ', '') == "": continue
-
-                    tag_styles: Dict[str, any] = {}
 
                     if "style" in child_tag.attrs:
                         styles = child_tag.attrs["style"]
@@ -44,9 +46,9 @@ class HTMLParser:
                             for property in rule.style:
                                 tag_styles[property.name] = property.value
 
-                    self.styled_text.renderText(f"{child_tag.attrs['html']}\n\n", tag_styles)
+                    text_rect = self.styled_text.renderText(f"{child_tag.attrs['html']}\n\n", tag_styles)
                     
-                parent_element.children.append(Element(child_tag.name, child_tag.attrs))
+                parent_element.children.append(Element(child_tag.name, child_tag.attrs, text_rect, tag_styles))
 
                 self.recurse_tag_children(child_tag, parent_element.children[-1])
         
