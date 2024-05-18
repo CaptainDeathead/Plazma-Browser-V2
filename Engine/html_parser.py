@@ -5,7 +5,7 @@ from Engine.DOM.element import Element
 from typing import Dict
 from bs4 import BeautifulSoup, element
 from pygame_gui import UIManager
-from Ui.elements import USE_TEXTBOX_TAGS, TEXT_TAGS
+from Ui.elements import UI_TEXT_TAG_SIZES, TEXT_TAGS
 from Engine.STR.renderer import StyledText
 from pygame.display import set_caption
 from css_parser import parseString
@@ -32,7 +32,7 @@ class HTMLParser:
 
                 text_rect: pg.Rect = None
                 text_rect_unused: pg.Rect = None
-                tag_styles: Dict[str, any] = {}
+                tag_styles: Dict[str, any] = {'font-size': str(UI_TEXT_TAG_SIZES.get(child_tag.name, 16)) + "px"}
 
                 if child_tag.name in TEXT_TAGS:
                     # check if tag's text is empty
@@ -45,7 +45,10 @@ class HTMLParser:
                         
                         for rule in sheet:
                             for property in rule.style:
-                                tag_styles[property.name] = property.value
+                                if property.name == 'font-family':
+                                    tag_styles['font'] = property.value.split(',')[0]
+                                else:
+                                    tag_styles[property.name] = property.value
 
                     text_rect, text_rect_unused = self.styled_text.renderText(f"{child_tag.attrs['html']}\n\n", tag_styles)
                     
