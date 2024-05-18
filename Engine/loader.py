@@ -3,10 +3,12 @@ import requests
 from io import TextIOWrapper
 from Engine.DOM.document import Document
 from Engine.renderer import Renderer
-from config import HTML_LOAD_THREAD, USER_AGENT
+from config import HTML_LOAD_THREAD
 from Engine.threads import LoaderThread
 from typing import Dict
+from fake_useragent import UserAgent
 
+USER_AGENT: str = UserAgent().chrome
 loader_thread: LoaderThread = None
 
 def load_html(renderer: Renderer, html: str, mutable_document_class: Document | None) -> Document:

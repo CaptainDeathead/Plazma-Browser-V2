@@ -23,8 +23,6 @@ ENGINE_VERSION: str = "0.1"
 
 ADDITIONAL_INFO: str = "DevBuild (unstable)"
 
-USER_AGENT = f"{BROWSER_NAME}/{BROWSER_VERSION} {OS_IDENT} {ENGINE_NAME}/{ENGINE_VERSION} {ADDITIONAL_INFO}"
-
 # testing
 #BROWSER_TEST_URL: str = "https://en.wikipedia.org/wiki/web_browser"
 BROWSER_TEST_URL: str = "file://test.html"
