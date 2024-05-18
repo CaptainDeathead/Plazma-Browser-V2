@@ -3,8 +3,9 @@ import requests
 from io import TextIOWrapper
 from Engine.DOM.document import Document
 from Engine.renderer import Renderer
-from config import HTML_LOAD_THREAD
+from config import HTML_LOAD_THREAD, USER_AGENT
 from Engine.threads import LoaderThread
+from typing import Dict
 
 loader_thread: LoaderThread = None
 
@@ -71,6 +72,8 @@ def get_page(url: str) -> requests.Response | str:
             return "unknown_error.html"
     
     logging.debug(f"Attempting to connect to url: '{url}'.")
+
+    headers: Dict[str, str] = {"User-Agent": USER_AGENT}
 
     try:
         response: requests.Response = requests.get(url, timeout=10, allow_redirects=True)
