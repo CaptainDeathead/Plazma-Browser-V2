@@ -31,6 +31,7 @@ class HTMLParser:
                 if child_tag.name == "title": set_caption(f"Plazma Browser (Dev) | {child_tag.attrs['text']}")
 
                 text_rect: pg.Rect = None
+                text_rect_unused: pg.Rect = None
                 tag_styles: Dict[str, any] = {}
 
                 if child_tag.name in TEXT_TAGS:
@@ -46,9 +47,9 @@ class HTMLParser:
                             for property in rule.style:
                                 tag_styles[property.name] = property.value
 
-                    text_rect = self.styled_text.renderText(f"{child_tag.attrs['html']}\n\n", tag_styles)
+                    text_rect, text_rect_unused = self.styled_text.renderText(f"{child_tag.attrs['html']}\n\n", tag_styles)
                     
-                parent_element.children.append(Element(child_tag.name, child_tag.attrs, text_rect, tag_styles))
+                parent_element.children.append(Element(child_tag.name, child_tag.attrs, text_rect, text_rect_unused, tag_styles))
 
                 self.recurse_tag_children(child_tag, parent_element.children[-1])
         

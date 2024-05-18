@@ -8,13 +8,14 @@ def is_clickable(tag: str) -> bool:
         return False
 
 class Element:
-    def __init__(self, tag: str, attributes: Dict, rect: pg.Rect = None, styles: Dict[str, any] = {}) -> None:
+    def __init__(self, tag: str, attributes: Dict, rect: pg.Rect = None, rect_unused: pg.Rect = None, styles: Dict[str, any] = {}) -> None:
         self.tag: str = tag
         self.attributes: Dict = attributes
         self.children: List = []
 
         # surface and render attributes
         self.rect: pg.Rect = rect
+        self.rect_unused: pg.Rect = rect_unused
         
         self.hovered: bool = False
         self.clickable: bool = is_clickable(self.tag)
