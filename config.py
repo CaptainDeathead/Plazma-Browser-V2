@@ -24,6 +24,6 @@ ENGINE_VERSION: str = "0.1"
 ADDITIONAL_INFO: str = "DevBuild (unstable)"
 
 # testing
-#BROWSER_TEST_URL: str = "https://en.wikipedia.org/wiki/web_browser"
-BROWSER_TEST_URL: str = "https://en.wikipedia.org/wiki/elon_musk"
+BROWSER_TEST_URL: str = "https://en.wikipedia.org/wiki/web_browser"
+#BROWSER_TEST_URL: str = "https://en.wikipedia.org/wiki/elon_musk"
 #BROWSER_TEST_URL: str = "file://test.html"

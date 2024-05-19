@@ -48,6 +48,7 @@ class Window:
                     self.renderer.scroll_x -= event.x * 10
                     self.renderer.scroll_y -= event.y * 10
 
+                    # stop scrolling from going over the max-scroll limit
                     self.renderer.scroll_y = min(max(0, self.renderer.scroll_y),
                                                  len(self.renderer.styled_text.rendered_text_screens)*\
                                                     self.renderer.styled_text.render_height-1-\

@@ -33,6 +33,9 @@ class Renderer:
         # clear text
         self.styled_text.clear()
 
+        self.scroll_x = 0.0
+        self.scroll_y = 0.0
+
         document: Document = self.html_parser.parseHTML(html)
 
         return document
