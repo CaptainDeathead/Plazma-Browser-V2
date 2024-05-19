@@ -5,6 +5,8 @@ from Engine.html_parser import HTMLParser
 from Engine.STR.renderer import StyledText
 from config import WIN_WIDTH, WIN_HEIGHT
 from math import floor
+from typing import List
+from copy import deepcopy
 
 class Renderer:
     def __init__(self, manager: pgu.UIManager):
@@ -17,13 +19,17 @@ class Renderer:
         self.scroll_y: float = 0.0
 
     def render(self) -> pg.Surface:
-        self.display_surf.fill((255, 255, 255))
-
         screen_index: int = floor(self.scroll_y / self.styled_text.render_height)
 
+        if screen_index >= len(self.styled_text.rendered_text_screens): return self.display_surf
+
+        self.display_surf.fill((255, 255, 255))
+
+        rendered_text_screens: List[pg.Surface] = deepcopy(self.styled_text.rendered_text_screens)
+
         new_display_surf: pg.Surface = pg.Surface((self.styled_text.wrap_px, self.styled_text.render_height*2))
-        new_display_surf.blit(self.styled_text.rendered_text_screens[screen_index], (0, 0))
-        new_display_surf.blit(self.styled_text.rendered_text_screens[screen_index+1], (0, self.styled_text.render_height))
+        new_display_surf.blit(rendered_text_screens[screen_index], (0, 0))
+        new_display_surf.blit(rendered_text_screens[screen_index+1], (0, self.styled_text.render_height))
 
         self.display_surf.blit(new_display_surf, (self.scroll_x, -(self.scroll_y%self.styled_text.render_height)))
 
