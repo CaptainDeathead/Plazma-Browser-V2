@@ -42,6 +42,16 @@ class Window:
                 if event.type == pg.QUIT:
                     pg.quit()
                     exit()
+
+                # scrolling
+                elif event.type == pg.MOUSEWHEEL:
+                    self.renderer.scroll_x -= event.x * 10
+                    self.renderer.scroll_y -= event.y * 10
+
+                    self.renderer.scroll_y = min(max(0, self.renderer.scroll_y),
+                                                 len(self.renderer.styled_text.rendered_text_screens)*\
+                                                    self.renderer.styled_text.render_height-1-\
+                                                        self.renderer.styled_text.render_height)
                     
                 elif event.type == pgu.UI_TEXT_ENTRY_FINISHED:
                     response: requests.Response | str = get_page(self.search_bar.text)
@@ -49,11 +59,11 @@ class Window:
                     
                 self.manager.process_events(event)
 
-            self.screen.blit(self.renderer.styled_text.rendered_text, (0, 50))
-                
+            self.screen.blit(self.renderer.render(), (0, 50))
+
             self.manager.update(time_delta)
-                    
             self.manager.draw_ui(self.screen)
+
             pg.display.flip()
             
 if __name__ == "__main__":
