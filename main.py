@@ -45,8 +45,8 @@ class Window:
 
                 # scrolling
                 elif event.type == pg.MOUSEWHEEL:
-                    self.renderer.scroll_x -= event.x * 10
-                    self.renderer.scroll_y -= event.y * 10
+                    self.renderer.scroll_x -= event.x * 30
+                    self.renderer.scroll_y -= event.y * 30
 
                     # stop scrolling from going over the max-scroll limit
                     self.renderer.scroll_y = min(max(0, self.renderer.scroll_y),

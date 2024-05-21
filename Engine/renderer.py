@@ -36,11 +36,11 @@ class Renderer:
         return self.display_surf
 
     def loadHTML(self, html: str) -> Document | None:
-        # clear text
-        self.styled_text.clear()
-
         self.scroll_x = 0.0
         self.scroll_y = 0.0
+        
+        # clear text
+        self.styled_text.clear()
 
         document: Document = self.html_parser.parseHTML(html)
 

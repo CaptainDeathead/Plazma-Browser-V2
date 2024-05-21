@@ -18,7 +18,8 @@ UI_TEXT_TAG_SIZES: Dict = {
     'h4': 20,
     'h5': 18,
     'h6': 16,
-    'p': 16
+    'p': 16,
+    'a': 16
 }
 
 USE_TEXTBOX_TAGS: List = [

@@ -1,4 +1,5 @@
 import platform
+from typing import Tuple
 
 WIN_WIDTH: int = 800
 WIN_HEIGHT: int = 600
@@ -22,6 +23,10 @@ ENGINE_NAME: str = "WebIoniser"
 ENGINE_VERSION: str = "0.1"
 
 ADDITIONAL_INFO: str = "DevBuild (unstable)"
+
+# general settings
+LINK_NORMAL_COLOR: Tuple[int, int, int] = (65, 145, 245)
+PRESSED_LINK_COLOR: Tuple[int, int, int] = (35, 170, 35)
 
 # testing
 BROWSER_TEST_URL: str = "https://en.wikipedia.org/wiki/web_browser"

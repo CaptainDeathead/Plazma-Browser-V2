@@ -5,11 +5,12 @@ from Engine.DOM.element import Element
 from typing import Dict
 from bs4 import BeautifulSoup, element
 from pygame_gui import UIManager
-from Ui.elements import UI_TEXT_TAG_SIZES, TEXT_TAGS
+from Ui.elements import UI_TEXT_TAG_SIZES, TEXT_TAGS, USE_TEXTBOX_TAGS
 from Engine.STR.renderer import StyledText
 from pygame.display import set_caption
 from css_parser import parseString
 from css_parser.css import CSSStyleSheet, CSSRuleList, CSSRule
+from re import finditer
 
 class HTMLParser:
     def __init__(self, manager: UIManager, styled_text: StyledText) -> None:
@@ -34,6 +35,33 @@ class HTMLParser:
                 text_rect_unused: pg.Rect = None
                 tag_styles: Dict[str, any] = {'font-size': str(UI_TEXT_TAG_SIZES.get(child_tag.name, 16)) + "px"}
 
+                element_width: int = int(child_tag.attrs.get("width", 0))
+                element_height: int = int(child_tag.attrs.get("height", 0))
+
+                # ---------- NEW ----------
+
+                child_tag_html: str = child_tag.attrs["html"]
+
+                if child_tag.name in TEXT_TAGS:
+                    open_tags = [tag.start() for tag in finditer('<', child_tag_html)]
+                    close_tags = [tag.start() for tag in finditer('>', child_tag_html)]
+
+                    tag_offset: int = 0
+    
+                    for i in range(0, len(close_tags)-1, 1):
+                        if child_tag_html[close_tags[i]+tag_offset+1] != '<':
+                            # <browser_text> has a length of 14
+                            child_tag.attrs["html"] = "{}{}{}".format(child_tag_html[:close_tags[i]+tag_offset+1], "<browser_text>", child_tag_html[close_tags[i]+tag_offset+1:])
+                            child_tag_html = child_tag.attrs["html"]
+                            tag_offset += 14
+                            child_tag.attrs["html"] = "{}{}{}".format(child_tag_html[:open_tags[i+1]+tag_offset], "</browser_text>", child_tag_html[open_tags[i+1]+tag_offset:])
+                            child_tag_html = child_tag.attrs["html"]
+                            tag_offset += 15
+                        
+                    print(child_tag.attrs["html"] + '\n')
+                
+                # ---------- OLD ----------
+                
                 if child_tag.name in TEXT_TAGS:
                     # check if tag's text is empty
                     if child_tag.attrs["text"].replace(' ', '') == "": continue
@@ -52,7 +80,8 @@ class HTMLParser:
 
                     text_rect, text_rect_unused = self.styled_text.renderText(f"{child_tag.attrs['html']}\n\n", tag_styles)
                     
-                parent_element.children.append(Element(child_tag.name, child_tag.attrs, text_rect, text_rect_unused, tag_styles))
+                parent_element.children.append(Element(child_tag.name, child_tag.attrs, text_rect, text_rect_unused,
+                                                       tag_styles, element_width, element_height))
 
                 self.recurse_tag_children(child_tag, parent_element.children[-1])
         
