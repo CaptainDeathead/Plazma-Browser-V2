@@ -21,3 +21,6 @@ class Element:
         self.clicked: bool = False
 
         self.styles: Dict[str, any] = styles
+
+        self.scroll_x: float = 0.0
+        self.scroll_y: float = 0.0

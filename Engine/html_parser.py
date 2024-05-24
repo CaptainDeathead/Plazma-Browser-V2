@@ -1,5 +1,8 @@
 import pygame as pg
 import logging
+import cssutils
+from cssutils import parseString
+from cssutils.css import CSSStyleSheet
 from Engine.DOM.document import Document
 from Engine.DOM.element import Element
 from typing import Dict
@@ -8,10 +11,10 @@ from pygame_gui import UIManager
 from Ui.elements import UI_TEXT_TAG_SIZES, TEXT_TAGS, USE_TEXTBOX_TAGS
 from Engine.STR.renderer import StyledText, remove_units
 from pygame.display import set_caption
-from css_parser import parseString
-from css_parser.css import CSSStyleSheet, CSSRuleList, CSSRule
 from re import finditer
 from copy import deepcopy
+
+cssutils.log.setLevel(logging.CRITICAL)
 
 class HTMLParser:
     CONTAINER_WIDTH: int = 0
@@ -42,6 +45,10 @@ class HTMLParser:
                 # inherit parent styles
                 tag_styles: Dict[str, any] = deepcopy(parent_element.styles)
 
+                # add styles for text info when sizing fonts
+                tag_styles["text-tag-size"] = UI_TEXT_TAG_SIZES.get(child_tag.name, 16)
+                tag_styles["parent-tag-size"] = parent_element.styles.get("text-tag-size", 16)
+
                 if child_tag.name == 'i': tag_styles["italic"] = True
                 elif child_tag.name == 'b' or child_tag.name == 'strong': tag_styles["bold"] = True
                 elif child_tag.name == 'u': tag_styles["underline"] = True
@@ -51,8 +58,8 @@ class HTMLParser:
                     else:
                         self.styled_text.renderStyledText('\n')[0].height
 
-                element_width: int = int(remove_units(str(child_tag.attrs.get("width", 0))))
-                element_height: int = int(remove_units(str(child_tag.attrs.get("height", 0))))
+                element_width: int = int(remove_units(str(child_tag.attrs.get("width", 0)), 0, 0, self.CONTAINER_WIDTH, self.CONTAINER_HEIGHT))
+                element_height: int = int(remove_units(str(child_tag.attrs.get("height", 0)), 0, 0, self.CONTAINER_WIDTH, self.CONTAINER_HEIGHT))
 
                 # ---------- PRE-PARSING ----------
 
@@ -103,22 +110,6 @@ class HTMLParser:
                                 tag_styles['font'] = property.value.split(',')[0]
                             else:
                                 tag_styles[property.name] = property.value
-                
-                # ----- OLD -----
-
-                """if child_tag.name in TEXT_TAGS:
-                    # check if tag's text is empty
-                    if child_tag.attrs["text"].replace(' ', '') == "": continue
-
-                    text_rect, text_rect_unused = self.styled_text.renderText(f"{child_tag.attrs['html']}\n\n", tag_styles)
-                    
-                    parent_element.children.append(Element(child_tag.name, child_tag.attrs, text_rect, text_rect_unused,
-                                                        tag_styles, element_width, element_height))
-                else:
-                    parent_element.children.append(Element(child_tag.name, child_tag.attrs, {0, 0, self.CONTAINER_WIDTH, self.CONTAINER_HEIGHT}, {0, 0, 0, 0},
-                                                        tag_styles, element_width, element_height))"""
-                    
-                # ----- NEW -----
 
                 if child_tag.name == 'browser_text':
                     text_rect, text_rect_unused = self.styled_text.renderStyledText(f"{child_tag.attrs['text']}", tag_styles)
@@ -137,6 +128,9 @@ class HTMLParser:
         first_elem = soup.find()
 
         self.document.html_element = Element(first_elem.name, first_elem.attrs)
+
+        self.document.html_element.styles["view-width"] = self.CONTAINER_WIDTH
+        self.document.html_element.styles["view-height"] = self.CONTAINER_HEIGHT
 
         self.recurse_tag_children(first_elem, self.document.html_element)
         if self.stop_loading: return None
