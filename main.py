@@ -19,7 +19,7 @@ class Window:
     def __init__(self):
         self.screen: pg.Surface = pg.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
         self.manager: pgu.UIManager = pgu.UIManager((WIN_WIDTH, WIN_HEIGHT))
-        self.renderer: Renderer = Renderer(self.manager)
+        self.renderer: Renderer = Renderer(self.manager, 800, 550)
         self.document: Document = Document()
         
         self.search_bar: SearchBar = SearchBar(pg.Rect(200, 10, 400, 30), self.manager)

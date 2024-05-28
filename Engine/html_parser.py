@@ -17,15 +17,15 @@ from copy import deepcopy
 cssutils.log.setLevel(logging.CRITICAL)
 
 class HTMLParser:
-    CONTAINER_WIDTH: int = 0
-    CONTAINER_HEIGHT: int = 0
-
-    def __init__(self, manager: UIManager, styled_text: StyledText) -> None:
+    def __init__(self, manager: UIManager, styled_text: StyledText, width: int, height: int) -> None:
         self.document: Document = Document()
         self.manager: UIManager = manager
         self.styled_text: StyledText = styled_text
-        self.curr_y: int = 50
+        self.curr_y: int = 0
         self.stop_loading: bool = False
+
+        self.container_width: int = width
+        self.container_height: int = height
 
     def recurse_tag_children(self, tag: element.Tag, parent_element: Element) -> None:
         if self.stop_loading: return
@@ -58,8 +58,8 @@ class HTMLParser:
                     else:
                         self.styled_text.renderStyledText('\n')[0].height
 
-                element_width: int = int(remove_units(str(child_tag.attrs.get("width", 0)), 0, 0, self.CONTAINER_WIDTH, self.CONTAINER_HEIGHT))
-                element_height: int = int(remove_units(str(child_tag.attrs.get("height", 0)), 0, 0, self.CONTAINER_WIDTH, self.CONTAINER_HEIGHT))
+                element_width: int = int(remove_units(str(child_tag.attrs.get("width", 0)), 0, 0, self.container_width, self.container_height))
+                element_height: int = int(remove_units(str(child_tag.attrs.get("height", 0)), 0, 0, self.container_width, self.container_height))
 
                 # ---------- PRE-PARSING ----------
 
@@ -117,7 +117,7 @@ class HTMLParser:
                     parent_element.children.append(Element(child_tag.name, child_tag.attrs, text_rect, text_rect_unused,
                                                         tag_styles, element_width, element_height))
                 else:
-                    parent_element.children.append(Element(child_tag.name, child_tag.attrs, {0, 0, self.CONTAINER_WIDTH, self.CONTAINER_HEIGHT}, {0, 0, 0, 0},
+                    parent_element.children.append(Element(child_tag.name, child_tag.attrs, {0, 0, self.container_width, self.container_height}, {0, 0, 0, 0},
                                                         tag_styles, element_width, element_height))
 
                 self.recurse_tag_children(child_tag, parent_element.children[-1])
@@ -129,8 +129,8 @@ class HTMLParser:
 
         self.document.html_element = Element(first_elem.name, first_elem.attrs)
 
-        self.document.html_element.styles["view-width"] = self.CONTAINER_WIDTH
-        self.document.html_element.styles["view-height"] = self.CONTAINER_HEIGHT
+        self.document.html_element.styles["view-width"] = self.container_width
+        self.document.html_element.styles["view-height"] = self.container_height
 
         self.recurse_tag_children(first_elem, self.document.html_element)
         if self.stop_loading: return None
