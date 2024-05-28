@@ -19,11 +19,14 @@ class Window:
     def __init__(self):
         self.screen: pg.Surface = pg.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
         self.manager: pgu.UIManager = pgu.UIManager((WIN_WIDTH, WIN_HEIGHT))
-        self.renderer: Renderer = Renderer(self.manager)
+
+        self.renderer: Renderer = Renderer(800, 550)
+        self.renderer_surface: pg.Surface = pg.Surface((800, 550))
+
         self.document: Document = Document()
         
         self.search_bar: SearchBar = SearchBar(pg.Rect(200, 10, 400, 30), self.manager)
-        
+
     def main(self):
         pg.display.set_caption("Plazma Browser (Dev) | New tab")
 
@@ -37,33 +40,31 @@ class Window:
         while 1:
             time_delta = clock.tick(60)/1000.0
             self.screen.fill((255, 255, 255))
+            self.renderer_surface.fill((255, 255, 255))
             
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     pg.quit()
                     exit()
-
-                # scrolling
-                elif event.type == pg.MOUSEWHEEL:
-                    self.renderer.scroll_x -= event.x * 30
-                    self.renderer.scroll_y -= event.y * 30
-
-                    # stop scrolling from going over the max-scroll limit
-                    self.renderer.scroll_y = min(max(0, self.renderer.scroll_y),
-                                                 len(self.renderer.styled_text.rendered_text_screens)*\
-                                                    self.renderer.styled_text.render_height-1-\
-                                                        self.renderer.styled_text.render_height)
                     
                 elif event.type == pgu.UI_TEXT_ENTRY_FINISHED:
                     response: requests.Response | str = get_page(self.search_bar.text)
                     self.document = transfer_response(self.renderer, response)
                     
-                self.manager.process_events(event)
+                try:
+                    self.manager.process_events(event)
+                    self.renderer.manager.process_events(event)
+                except: pass
 
-            self.screen.blit(self.renderer.render(), (0, 50))
+            try:
+                self.manager.update(time_delta)
+                self.renderer.manager.update(time_delta)
+            except: pass
 
-            self.manager.update(time_delta)
             self.manager.draw_ui(self.screen)
+            self.renderer.manager.draw_ui(self.renderer_surface)
+
+            self.screen.blit(self.renderer_surface, (0, 50))
 
             pg.display.flip()
             

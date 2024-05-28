@@ -9,6 +9,12 @@ HTML_LOAD_THREAD: bool = True
 
 DEBUG_MODE: bool = True
 
+GLOBAL_THEME_PATH: str = './Data/themes.json'
+
+
+
+# --------------- BROWSER CONFIG ---------------
+
 # platform settings
 OS_NAME: str = platform.system()
 OS_VERSION: str = platform.version()
