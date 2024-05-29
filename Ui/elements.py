@@ -9,6 +9,10 @@ def set_title(relative_rect: pg.Rect = None, manager: pgu.UIManager = None, elem
     try: pg.display.set_caption(options["text"])
     except: warning("Invalid title!")
         
+DEFAULT_START_RENDER_X: float = 10.0
+
+DEFAULT_BLOCK_SPACING_Y: float = 20.0
+
 UI_IMPLEMENTED_TAGS: List = ['title', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']
 
 UI_TEXT_TAG_SIZES: Dict = {

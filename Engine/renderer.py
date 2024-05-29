@@ -6,14 +6,13 @@ from Engine.STR.renderer import StyledText
 from config import WIN_WIDTH, WIN_HEIGHT
 from math import floor
 from typing import List
-from copy import deepcopy
 
 class Renderer:
     def __init__(self, manager: pgu.UIManager, width: int, height: int):
         self.manager: pgu.UIManager = manager
         self.styled_text: StyledText = StyledText("\n", width, height, (0, 0, 0), (255, 255, 255), "Arial", 16, (2, 20, 2, 20))
         self.html_parser: HTMLParser = HTMLParser(self.manager, self.styled_text, width, height)
-        self.display_surf: pg.Surface = pg.Surface((self.styled_text.wrap_px, height*2))
+        self.display_surf: pg.Surface = pg.Surface((width, height))
 
         self.width: int = width
         self.height: int = height
@@ -22,19 +21,8 @@ class Renderer:
         self.scroll_y: float = 0.0
 
     def render(self) -> pg.Surface:
-        screen_index: int = floor(self.scroll_y / self.height)
-
-        if screen_index >= len(self.styled_text.rendered_text_screens): return self.display_surf
-
-        self.display_surf.fill((255, 255, 255))
-
-        rendered_text_screens: List[pg.Surface] = self.styled_text.rendered_text_screens
-
-        new_display_surf: pg.Surface = pg.Surface((self.styled_text.wrap_px, self.height*2))
-        new_display_surf.blit(rendered_text_screens[screen_index], (0, 0))
-        new_display_surf.blit(rendered_text_screens[screen_index+1], (0, self.height))
-
-        self.display_surf.blit(new_display_surf, (self.scroll_x, -(self.scroll_y%self.height)))
+        self.display_surf: pg.Surface = pg.Surface((self.width, self.height))
+        self.display_surf.blit(self.styled_text.rendered_text, (self.scroll_x, -self.scroll_y))
 
         return self.display_surf
 

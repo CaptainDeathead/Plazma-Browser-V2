@@ -49,10 +49,7 @@ class Window:
                     self.renderer.scroll_y -= event.y * 30
 
                     # stop scrolling from going over the max-scroll limit
-                    self.renderer.scroll_y = min(max(0, self.renderer.scroll_y),
-                                                 len(self.renderer.styled_text.rendered_text_screens)*\
-                                                    self.renderer.styled_text.render_height-1-\
-                                                        self.renderer.styled_text.render_height)
+                    self.renderer.scroll_y = max(min(self.renderer.scroll_y, self.renderer.styled_text.rendered_text.get_height()-self.renderer.height), 0)
                     
                 elif event.type == pgu.UI_TEXT_ENTRY_FINISHED:
                     response: requests.Response | str = get_page(self.search_bar.text)
