@@ -22,7 +22,7 @@ class Renderer:
 
     def render(self) -> pg.Surface:
         self.display_surf: pg.Surface = pg.Surface((self.width, self.height))
-        self.display_surf.blit(self.styled_text.rendered_text, (self.scroll_x, -self.scroll_y))
+        self.display_surf.blit(self.styled_text.rendered_text, (-self.scroll_x, -self.scroll_y))
 
         return self.display_surf
 

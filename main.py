@@ -46,9 +46,14 @@ class Window:
                 # scrolling
                 elif event.type == pg.MOUSEWHEEL:
                     self.renderer.scroll_x -= event.x * 30
-                    self.renderer.scroll_y -= event.y * 30
+                    
+                    if pg.key.get_pressed()[pg.K_LSHIFT]:
+                        self.renderer.scroll_x -= event.y * 30
+                    else:
+                        self.renderer.scroll_y -= event.y * 30
 
                     # stop scrolling from going over the max-scroll limit
+                    self.renderer.scroll_x = max(min(self.renderer.scroll_x, self.renderer.styled_text.rendered_text.get_width()-self.renderer.width), 0)
                     self.renderer.scroll_y = max(min(self.renderer.scroll_y, self.renderer.styled_text.rendered_text.get_height()-self.renderer.height), 0)
                     
                 elif event.type == pgu.UI_TEXT_ENTRY_FINISHED:
