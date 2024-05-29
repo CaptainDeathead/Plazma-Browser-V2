@@ -13,6 +13,7 @@ from Engine.STR.renderer import StyledText, remove_units
 from pygame.display import set_caption
 from re import finditer
 from copy import deepcopy
+from config import SHOW_PRIMARY_SURFACE_CONTAINERS
 
 cssutils.log.setLevel(logging.CRITICAL)
 
@@ -113,6 +114,17 @@ class HTMLParser:
 
                 if child_tag.name == 'browser_text':
                     text_rect, text_rect_unused = self.styled_text.renderStyledText(f"{child_tag.attrs['text']}", tag_styles)
+
+                    if SHOW_PRIMARY_SURFACE_CONTAINERS:
+                        text_rect_dev_surface: pg.Surface = pg.Surface((text_rect.width, text_rect.height))
+                        text_rect_dev_surface.set_alpha(128)
+                        text_rect_dev_surface.fill((255, 0, 0))
+                        self.styled_text.rendered_text.blit(text_rect_dev_surface, (text_rect.x, text_rect.y))
+
+                        text_rect_unused_dev_surface: pg.Surface = pg.Surface((text_rect_unused.width, text_rect_unused.height))
+                        text_rect_unused_dev_surface.set_alpha(128)
+                        text_rect_unused_dev_surface.fill((0, 255, 0))
+                        self.styled_text.rendered_text.blit(text_rect_unused_dev_surface, (text_rect_unused.x, text_rect_unused.y))
 
                     parent_element.children.append(Element(child_tag.name, child_tag.attrs, text_rect, text_rect_unused,
                                                         tag_styles, element_width, element_height))
