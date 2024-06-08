@@ -36,7 +36,7 @@ class HTMLParser:
         self.container_width: int = width
         self.container_height: int = height
 
-    def recurse_tag_children(self, tag: element.Tag, parent_element: Element, inline_elements: int = 0) -> None:
+    def recurse_tag_children(self, tag: element.Tag, parent_element: Element, inline_elements: int = 0, depth: int = 0) -> None:
         if self.stop_loading: return
         
         for child_tag in tag.children:
@@ -141,12 +141,12 @@ class HTMLParser:
 
                     if SHOW_PRIMARY_SURFACE_CONTAINERS:
                         text_rect_dev_surface: pg.Surface = pg.Surface((text_rect.width, text_rect.height))
-                        text_rect_dev_surface.set_alpha(128)
+                        text_rect_dev_surface.set_alpha(int(128))
                         text_rect_dev_surface.fill((255, 0, 0))
                         self.styled_text.rendered_text.blit(text_rect_dev_surface, (text_rect.x, text_rect.y))
 
                         text_rect_unused_dev_surface: pg.Surface = pg.Surface((text_rect_unused.width, text_rect_unused.height))
-                        text_rect_unused_dev_surface.set_alpha(128)
+                        text_rect_unused_dev_surface.set_alpha(int(128))
                         text_rect_unused_dev_surface.fill((0, 255, 0))
                         self.styled_text.rendered_text.blit(text_rect_unused_dev_surface, (text_rect_unused.x, text_rect_unused.y))
 
@@ -166,7 +166,7 @@ class HTMLParser:
 
                 parent_element.children.append(new_element)
 
-                self.recurse_tag_children(child_tag, parent_element.children[-1])
+                self.recurse_tag_children(child_tag, parent_element.children[-1], inline_elements, depth + 1)
         
     def parseHTML(self, html: str, thread_id: int = 0) -> Document | None:
         html = "<plazma-browser>" + html + "</plazma-browser>"
