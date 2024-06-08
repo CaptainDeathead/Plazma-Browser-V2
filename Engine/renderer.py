@@ -23,6 +23,8 @@ class Renderer:
         self.mouse_pos: Tuple[int, int] = pg.mouse.get_pos()
         self.lmb_pressed: bool = pg.mouse.get_pressed()[0]
 
+        self.mouse_type: int = pg.SYSTEM_CURSOR_ARROW
+
     def move_scroll_x(self, scroll_x: float) -> None:
         self.scroll_x += scroll_x
         self.scroll_x = max(min(self.scroll_x, self.styled_text.rendered_text.get_width()-self.width), 0)
@@ -39,14 +41,16 @@ class Renderer:
 
         return self.display_surf
 
-    def search_children(self, element: Element) -> None:
-        if element is None: return
+    def search_children(self, element: Element, hand_cursor: bool = False) -> None:
+        if element is None: return hand_cursor
 
         if element.rect.collidepoint(self.mouse_pos):
             if not element.rect_unused.collidepoint(self.mouse_pos):
                 element.hovered = True
 
                 if self.lmb_pressed: element.pressed = True
+
+                if element.tag == "a": hand_cursor = True
         else:
             element.hovered = False
             element.pressed = False
@@ -55,13 +59,26 @@ class Renderer:
             child.hovered = element.hovered
             child.pressed = element.pressed
 
-            self.search_children(child)
+            hand_cursor = self.search_children(child, hand_cursor)
+
+        element.update()
+
+        return hand_cursor
 
     def update_elements(self) -> None:
         self.mouse_pos = pg.mouse.get_pos()
+        self.mouse_pos = (self.mouse_pos[0]+self.scroll_x, self.mouse_pos[1]+self.scroll_y-50)
+
         self.lmb_pressed = pg.mouse.get_pressed()[0]
 
-        self.search_children(self.html_parser.document.html_element)
+        hand_cursor: bool = self.search_children(self.html_parser.document.html_element)
+
+        if hand_cursor:
+            if self.mouse_type != pg.SYSTEM_CURSOR_HAND: self.mouse_type = pg.SYSTEM_CURSOR_HAND
+
+        else: self.mouse_type = pg.SYSTEM_CURSOR_ARROW
+        
+        pg.mouse.set_cursor(self.mouse_type)
 
     def loadHTML(self, html: str) -> Document | None:
         self.scroll_x = 0.0

@@ -42,6 +42,7 @@ class HTMLParser:
         for child_tag in tag.children:
             if isinstance(child_tag, element.Tag):
                 if child_tag.name in INLINE_ELEMENTS: inline_elements += 1
+                else: inline_elements = 0
 
                 child_tag.attrs["tag"] = child_tag.name
                 child_tag.attrs["text"] = child_tag.text.replace('\n', '')
@@ -139,6 +140,8 @@ class HTMLParser:
                 if child_tag.name == 'browser_text':
                     text_rect, text_rect_unused = self.styled_text.renderStyledText(f"{child_tag.attrs['text']}", tag_styles)
 
+                    #print(child_tag.name, text_rect, text_rect_unused)
+
                     if SHOW_PRIMARY_SURFACE_CONTAINERS:
                         text_rect_dev_surface: pg.Surface = pg.Surface((text_rect.width, text_rect.height))
                         text_rect_dev_surface.set_alpha(int(128))
@@ -157,16 +160,15 @@ class HTMLParser:
                     if child_tag.name == 'a':
                         tag_styles["color"] = LINK_NORMAL_COLOR
 
-                    new_element: Element = Element(child_tag.name, child_tag.attrs, self.EMPTY_RECT, self.EMPTY_RECT,
+                    new_element: Element = Element(child_tag.name, child_tag.attrs, pg.Rect(0, 0, 0, 0), pg.Rect(0, 0, 0, 0),
                                                         tag_styles, element_width, element_height, parent_element,
                                                         inline_elements)
-                    
-                if new_element.rect != self.EMPTY_RECT:
-                    new_element.resize_family_rects(new_element.parent)
 
                 parent_element.children.append(new_element)
 
                 self.recurse_tag_children(child_tag, parent_element.children[-1], inline_elements, depth + 1)
+
+                new_element.resize_family_rects(new_element.parent)
         
     def parseHTML(self, html: str, thread_id: int = 0) -> Document | None:
         html = "<plazma-browser>" + html + "</plazma-browser>"
@@ -175,7 +177,7 @@ class HTMLParser:
 
         first_elem = soup.find()
 
-        self.document.html_element = Element(first_elem.name, first_elem.attrs, self.EMPTY_RECT, self.EMPTY_RECT)
+        self.document.html_element = Element(first_elem.name, first_elem.attrs, pg.Rect(0, 0, 0, 0), pg.Rect(0, 0, 0, 0))
 
         self.document.html_element.styles["view-width"] = self.container_width
         self.document.html_element.styles["view-height"] = self.container_height

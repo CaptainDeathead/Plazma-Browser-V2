@@ -38,13 +38,23 @@ class Element:
     def resize_family_rects(self, parent: Self) -> None:
         if parent is None: return
 
+        if parent.rect.x == 0: parent.rect.x = self.rect.x
+        if parent.rect.y == 0: parent.rect.y = self.rect.y
+
+        local_x: int = self.rect.x - parent.rect.x
+        local_y: int = self.rect.y - parent.rect.y
+
+        largest_width: int = local_x + self.rect.width
+        largest_height: int = local_y + self.rect.height
+
         if self.inline_index > 0:
             parent.rect.width += self.rect.width
 
-            if self.rect.height > parent.rect.height: parent.rect.height = self.rect.height
+            if largest_height > parent.rect.height: parent.rect.height = largest_height
         else:
-            if self.rect.width > parent.rect.width: parent.rect.width = self.rect.width
+            if largest_width > parent.rect.width: parent.rect.width = largest_width
 
             parent.rect.height += self.rect.height
 
-        self.resize_family_rects(parent.parent)
+    def update(self) -> None:
+        ...
