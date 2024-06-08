@@ -13,7 +13,7 @@ from Engine.STR.renderer import StyledText, remove_units
 from pygame.display import set_caption
 from re import finditer
 from copy import deepcopy
-from config import SHOW_PRIMARY_SURFACE_CONTAINERS
+from config import SHOW_PRIMARY_SURFACE_CONTAINERS, LINK_NORMAL_COLOR, PRESSED_LINK_COLOR
 
 cssutils.log.setLevel(logging.CRITICAL)
 
@@ -129,6 +129,9 @@ class HTMLParser:
                     parent_element.children.append(Element(child_tag.name, child_tag.attrs, text_rect, text_rect_unused,
                                                         tag_styles, element_width, element_height))
                 else:
+                    if child_tag.name == 'a':
+                        tag_styles["color"] = LINK_NORMAL_COLOR
+
                     parent_element.children.append(Element(child_tag.name, child_tag.attrs, {0, 0, self.container_width, self.container_height}, {0, 0, 0, 0},
                                                         tag_styles, element_width, element_height))
 
