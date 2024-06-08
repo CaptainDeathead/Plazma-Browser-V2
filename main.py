@@ -1,6 +1,8 @@
 import pygame as pg
 import pygame_gui as pgu
 from Ui.search_bar import SearchBar
+from Ui.scrollbar import HScrollBar, VScrollBar
+from Ui.button import PGUButton
 from Engine.renderer import Renderer
 import requests
 import logging
@@ -24,6 +26,9 @@ class Window:
         
         self.search_bar: SearchBar = SearchBar(pg.Rect(200, 10, 400, 30), self.manager)
         
+        self.h_scroll_bar: HScrollBar = HScrollBar(self.manager, pg.Rect(0, 580, 780, 20), 780, self.renderer.move_scroll_x)
+        self.v_scroll_bar: VScrollBar = VScrollBar(self.manager, pg.Rect(780, 50, 20, 530), 530, self.renderer.move_scroll_y)
+        
     def main(self):
         pg.display.set_caption("Plazma Browser (Dev) | New tab")
 
@@ -45,27 +50,38 @@ class Window:
 
                 # scrolling
                 elif event.type == pg.MOUSEWHEEL:
-                    self.renderer.scroll_x -= event.x * 30
+                    self.renderer.move_scroll_x(-event.x * 30)
                     
                     if pg.key.get_pressed()[pg.K_LSHIFT]:
-                        self.renderer.scroll_x -= event.y * 30
+                        self.renderer.move_scroll_x(-event.y * 30)
                     else:
-                        self.renderer.scroll_y -= event.y * 30
-
-                    # stop scrolling from going over the max-scroll limit
-                    self.renderer.scroll_x = max(min(self.renderer.scroll_x, self.renderer.styled_text.rendered_text.get_width()-self.renderer.width), 0)
-                    self.renderer.scroll_y = max(min(self.renderer.scroll_y, self.renderer.styled_text.rendered_text.get_height()-self.renderer.height), 0)
+                        self.renderer.move_scroll_y(-event.y * 30)
                     
                 elif event.type == pgu.UI_TEXT_ENTRY_FINISHED:
                     response: requests.Response | str = get_page(self.search_bar.text)
                     self.document = transfer_response(self.renderer, response)
                     
+                elif event.type == pgu.UI_BUTTON_PRESSED:
+                    if type(event.ui_element) == PGUButton:
+                        event.ui_element.click_action()
+
                 self.manager.process_events(event)
 
             self.screen.blit(self.renderer.render(), (0, 50))
 
+            if self.renderer.scroll_x != self.h_scroll_bar.scroll \
+              or self.renderer.styled_text.rendered_text.get_width() != self.h_scroll_bar.max_scroll:
+                self.h_scroll_bar.set_scroll(self.renderer.scroll_x, self.renderer.styled_text.rendered_text.get_width())
+
+            if self.renderer.scroll_y != self.v_scroll_bar.scroll \
+              or self.renderer.styled_text.rendered_text.get_height() != self.v_scroll_bar.max_scroll:
+                self.v_scroll_bar.set_scroll(self.renderer.scroll_y, self.renderer.styled_text.rendered_text.get_height())
+
             self.manager.update(time_delta)
             self.manager.draw_ui(self.screen)
+
+            self.h_scroll_bar.draw(self.screen)
+            self.v_scroll_bar.draw(self.screen)
 
             pg.display.flip()
             
