@@ -9,7 +9,7 @@ class PGUButton(UIButton):
     def __init__(self, rect: pg.Rect, text: str, manager: UIManager, click_action: callable) -> None:
         super().__init__(rect, text, manager=manager)
 
-        self.click_action: function = click_action
+        self.click_action: callable = click_action
 
 class Button(pg.Rect):
     BASE_STYLES: Dict[str, any] = {

@@ -1,6 +1,5 @@
 import pygame as pg
 from pygame_gui import UIManager
-from pygame_gui.elements import UIButton
 from Ui.button import PGUButton
 from config import BUTTON_SCROLL_INCREMENT
 
