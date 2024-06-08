@@ -30,7 +30,7 @@ class Window:
         self.v_scroll_bar: VScrollBar = VScrollBar(self.manager, pg.Rect(780, 50, 20, 530), 530, self.renderer.move_scroll_y)
         
     def main(self):
-        pg.display.set_caption("Plazma Browser (Dev) | New tab")
+        pg.display.set_caption(BASE_TITLE + "New tab")
 
         if DEBUG_MODE:
             logging.debug("DEBUG_MODE=True; Loading test page...")

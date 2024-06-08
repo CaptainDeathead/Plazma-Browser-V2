@@ -5,19 +5,27 @@ from cssutils import parseString
 from cssutils.css import CSSStyleSheet
 from Engine.DOM.document import Document
 from Engine.DOM.element import Element
-from typing import Dict
+from typing import Dict, Tuple
 from bs4 import BeautifulSoup, element
 from pygame_gui import UIManager
-from Ui.elements import UI_TEXT_TAG_SIZES, TEXT_TAGS, USE_TEXTBOX_TAGS
-from Engine.STR.renderer import StyledText, remove_units
+from Ui.elements import UI_TEXT_TAG_SIZES, TEXT_TAGS, USE_TEXTBOX_TAGS, INLINE_ELEMENTS
+from Engine.STR.renderer import StyledText, remove_units, ishex, hex_to_rgb
 from pygame.display import set_caption
 from re import finditer
 from copy import deepcopy
-from config import SHOW_PRIMARY_SURFACE_CONTAINERS, LINK_NORMAL_COLOR, PRESSED_LINK_COLOR
+from config import SHOW_PRIMARY_SURFACE_CONTAINERS, LINK_NORMAL_COLOR, PRESSED_LINK_COLOR, BASE_TITLE
 
 cssutils.log.setLevel(logging.CRITICAL)
 
+def containsnum(string: str) -> bool:
+    for i in range(10):
+        if str(i) in string: return True
+
+    return False
+
 class HTMLParser:
+    EMPTY_RECT: pg.Rect = pg.Rect(0, 0, 0, 0)
+
     def __init__(self, manager: UIManager, styled_text: StyledText, width: int, height: int) -> None:
         self.document: Document = Document()
         self.manager: UIManager = manager
@@ -28,20 +36,22 @@ class HTMLParser:
         self.container_width: int = width
         self.container_height: int = height
 
-    def recurse_tag_children(self, tag: element.Tag, parent_element: Element) -> None:
+    def recurse_tag_children(self, tag: element.Tag, parent_element: Element, inline_elements: int = 0) -> None:
         if self.stop_loading: return
         
         for child_tag in tag.children:
             if isinstance(child_tag, element.Tag):
+                if child_tag.name in INLINE_ELEMENTS: inline_elements += 1
+
                 child_tag.attrs["tag"] = child_tag.name
                 child_tag.attrs["text"] = child_tag.text.replace('\n', '')
                 child_tag.attrs["html"] = str(child_tag).replace('\n', '')
 
                 # head tags
-                if child_tag.name == "title": set_caption(f"Plazma Browser (Dev) | {child_tag.attrs['text']}")
+                if child_tag.name == "title": set_caption(BASE_TITLE + child_tag.attrs['text'])
 
-                text_rect: pg.Rect = None
-                text_rect_unused: pg.Rect = None
+                text_rect: pg.Rect = parent_element.rect
+                text_rect_unused: pg.Rect = parent_element.rect_unused
 
                 # inherit parent styles
                 tag_styles: Dict[str, any] = deepcopy(parent_element.styles)
@@ -58,9 +68,6 @@ class HTMLParser:
                         parent_element.rect.height += self.styled_text.renderStyledText('\n')[0].height
                     else:
                         self.styled_text.renderStyledText('\n')[0].height
-
-                element_width: int = int(remove_units(str(child_tag.attrs.get("width", 0)), 0, 0, self.container_width, self.container_height))
-                element_height: int = int(remove_units(str(child_tag.attrs.get("height", 0)), 0, 0, self.container_width, self.container_height))
 
                 # ---------- PRE-PARSING ----------
 
@@ -96,7 +103,7 @@ class HTMLParser:
                         else:
                             self.styled_text.renderStyledText('\n')[0].height
                     else:
-                        tag_styles['font-size'] = str(UI_TEXT_TAG_SIZES.get(child_tag.name, 16)) + "px"
+                        tag_styles['font-size'] = UI_TEXT_TAG_SIZES.get(child_tag.name, 16)
 
                 # ---------- PARSING ----------
 
@@ -110,7 +117,24 @@ class HTMLParser:
                             if property.name == 'font-family':
                                 tag_styles['font'] = property.value.split(',')[0]
                             else:
-                                tag_styles[property.name] = property.value
+                                value: str | float | int = property.value
+
+                                if type(value) == str:
+                                    if ishex(value): value = hex_to_rgb(value)
+
+                                    elif containsnum(value):
+                                        value = remove_units(value, tag_styles["font-size"], parent_element.styles["font-size"],
+                                                            self.container_width, self.container_height)
+                                    
+                                tag_styles[property.name] = value
+
+                element_width: int = int(remove_units(str(child_tag.attrs.get("width", tag_styles.get("width", 0))),
+                                                      tag_styles["font-size"], parent_element.styles["font-size"],
+                                                      self.container_width, self.container_height))
+                
+                element_height: int = int(remove_units(str(child_tag.attrs.get("height", tag_styles.get("height", 0))),
+                                                       tag_styles["font-size"], parent_element.styles["font-size"],
+                                                       self.container_width, self.container_height))
 
                 if child_tag.name == 'browser_text':
                     text_rect, text_rect_unused = self.styled_text.renderStyledText(f"{child_tag.attrs['text']}", tag_styles)
@@ -126,26 +150,37 @@ class HTMLParser:
                         text_rect_unused_dev_surface.fill((0, 255, 0))
                         self.styled_text.rendered_text.blit(text_rect_unused_dev_surface, (text_rect_unused.x, text_rect_unused.y))
 
-                    parent_element.children.append(Element(child_tag.name, child_tag.attrs, text_rect, text_rect_unused,
-                                                        tag_styles, element_width, element_height))
+                    new_element: Element = Element(child_tag.name, child_tag.attrs, text_rect, text_rect_unused,
+                                                        tag_styles, element_width, element_height, parent_element,
+                                                        inline_elements)
                 else:
                     if child_tag.name == 'a':
                         tag_styles["color"] = LINK_NORMAL_COLOR
 
-                    parent_element.children.append(Element(child_tag.name, child_tag.attrs, {0, 0, self.container_width, self.container_height}, {0, 0, 0, 0},
-                                                        tag_styles, element_width, element_height))
+                    new_element: Element = Element(child_tag.name, child_tag.attrs, self.EMPTY_RECT, self.EMPTY_RECT,
+                                                        tag_styles, element_width, element_height, parent_element,
+                                                        inline_elements)
+                    
+                if new_element.rect != self.EMPTY_RECT:
+                    new_element.resize_family_rects(new_element.parent)
+
+                parent_element.children.append(new_element)
 
                 self.recurse_tag_children(child_tag, parent_element.children[-1])
         
     def parseHTML(self, html: str, thread_id: int = 0) -> Document | None:
+        html = "<plazma-browser>" + html + "</plazma-browser>"
+
         soup = BeautifulSoup(html, 'html.parser')
 
         first_elem = soup.find()
 
-        self.document.html_element = Element(first_elem.name, first_elem.attrs)
+        self.document.html_element = Element(first_elem.name, first_elem.attrs, self.EMPTY_RECT, self.EMPTY_RECT)
 
         self.document.html_element.styles["view-width"] = self.container_width
         self.document.html_element.styles["view-height"] = self.container_height
+
+        self.document.html_element.styles['font-size'] = 16
 
         self.recurse_tag_children(first_elem, self.document.html_element)
         if self.stop_loading: return None
