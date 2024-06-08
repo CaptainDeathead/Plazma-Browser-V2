@@ -4,6 +4,8 @@ from typing import Tuple
 WIN_WIDTH: int = 800
 WIN_HEIGHT: int = 600
 
+BUTTON_SCROLL_INCREMENT: int = 100
+
 HTML_LOAD_THREAD: bool = True
 
 

@@ -20,6 +20,14 @@ class Renderer:
         self.scroll_x: float = 0.0
         self.scroll_y: float = 0.0
 
+    def move_scroll_x(self, scroll_x: float) -> None:
+        self.scroll_x += scroll_x
+        self.scroll_x = max(min(self.scroll_x, self.styled_text.rendered_text.get_width()-self.width), 0)
+
+    def move_scroll_y(self, scroll_y: float) -> None:
+        self.scroll_y += scroll_y
+        self.scroll_y = max(min(self.scroll_y, self.styled_text.rendered_text.get_height()-self.height), 0)
+
     def render(self) -> pg.Surface:
         self.display_surf: pg.Surface = pg.Surface((self.width, self.height))
         self.display_surf.blit(self.styled_text.rendered_text, (-self.scroll_x, -self.scroll_y))
