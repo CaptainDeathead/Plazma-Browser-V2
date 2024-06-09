@@ -5,7 +5,7 @@ from Engine.DOM.element import Element
 from Engine.html_parser import HTMLParser
 from Engine.STR.renderer import StyledText
 from config import WIN_WIDTH, WIN_HEIGHT
-from typing import Tuple
+from typing import List, Tuple
 
 class Renderer:
     def __init__(self, manager: pgu.UIManager, width: int, height: int):
@@ -25,6 +25,9 @@ class Renderer:
 
         self.mouse_type: int = pg.SYSTEM_CURSOR_ARROW
 
+        self.hovered_elements: List[Element] = []
+        self.pressed_elements: List[Element] = []
+
     def move_scroll_x(self, scroll_x: float) -> None:
         self.scroll_x += scroll_x
         self.scroll_x = max(min(self.scroll_x, self.styled_text.rendered_text.get_width()-self.width), 0)
@@ -40,20 +43,39 @@ class Renderer:
         self.display_surf.blit(self.styled_text.rendered_text, (-self.scroll_x, -self.scroll_y))
 
         return self.display_surf
+    
+    def remove_mouse_status(self, element: Element) -> None:
+        element.hovered = False
+        element.pressed = False
+
+        if element in self.hovered_elements: self.hovered_elements.remove(element)
+        if element in self.pressed_elements: self.pressed_elements.remove(element)
 
     def search_children(self, element: Element, hand_cursor: bool = False) -> None:
         if element is None: return hand_cursor
 
         if element.rect.collidepoint(self.mouse_pos):
-            if not element.rect_unused.collidepoint(self.mouse_pos):
-                element.hovered = True
+            if not element.rect_unused.collidepoint(self.mouse_pos):                
+                if not element.hovered:
+                    element.hovered = True
+                    self.hovered_elements.append(element)
 
-                if self.lmb_pressed: element.pressed = True
+                if self.lmb_pressed:
+                    if not element.pressed:
+                        element.pressed = True
+                        self.pressed_elements.append(element)
+                else:
+                    element.pressed = False
+                    if element in self.pressed_elements: self.pressed_elements.remove(element)
+
+                self.hovered_elements.append(element)
 
                 if element.tag == "a": hand_cursor = True
+
+            else:
+                self.remove_mouse_status(element)
         else:
-            element.hovered = False
-            element.pressed = False
+            self.remove_mouse_status(element)
         
         for child in element.children:
             child.hovered = element.hovered
