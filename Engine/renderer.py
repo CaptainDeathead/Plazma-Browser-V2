@@ -55,8 +55,8 @@ class Renderer:
         
         self.html_parser.reparse_element(element, element.style_overides)
 
-    def search_children(self, element: Element, hand_cursor: bool = False) -> bool:
-        if element is None: return hand_cursor
+    def update_element(self, element: Element) -> bool:
+        hand_cursor = False
 
         if element.rect.collidepoint(self.mouse_pos):
             if not element.rect_unused.collidepoint(self.mouse_pos):                
@@ -86,11 +86,31 @@ class Renderer:
             child.hovered = element.hovered
             child.pressed = element.pressed
 
-            hand_cursor = self.search_children(child, hand_cursor)
-
         reload_required: bool = element.update()
 
         if reload_required: self.reload_element(element)
+
+        return hand_cursor
+
+    def search_children_iterative_preoder_traversal(self, element: Element) -> bool:
+        if element == None: return False
+
+        root: Element = element
+
+        hand_cursor: bool = False
+
+        nodeStack: List[Element] = []
+        nodeStack.append(root)
+
+        while len(nodeStack) > 0:
+            node = nodeStack.pop()
+
+            new_hand_cursor: Element = self.update_element(node)
+
+            if new_hand_cursor == True: hand_cursor = new_hand_cursor
+
+            for childNode in node.children:
+                nodeStack.append(childNode)
 
         return hand_cursor
 
@@ -99,8 +119,8 @@ class Renderer:
         self.mouse_pos = (self.mouse_pos[0]+self.scroll_x, self.mouse_pos[1]+self.scroll_y-50)
 
         self.lmb_pressed = pg.mouse.get_pressed()[0]
-
-        hand_cursor: bool = self.search_children(self.html_parser.document.html_element)
+        
+        hand_cursor: bool = self.search_children_iterative_preoder_traversal(self.html_parser.document.html_element)
 
         if hand_cursor:
             if self.mouse_type != pg.SYSTEM_CURSOR_HAND: self.mouse_type = pg.SYSTEM_CURSOR_HAND
