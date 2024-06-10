@@ -24,9 +24,6 @@ class Renderer:
 
         self.mouse_type: int = pg.SYSTEM_CURSOR_ARROW
 
-        self.hovered_elements: List[Element] = []
-        self.pressed_elements: List[Element] = []
-
     def move_scroll_x(self, scroll_x: float) -> None:
         self.scroll_x += scroll_x
         self.scroll_x = max(min(self.scroll_x, self.styled_text.rendered_text.get_width()-self.width), 0)
@@ -47,9 +44,6 @@ class Renderer:
         element.hovered = False
         element.pressed = False
 
-        if element in self.hovered_elements: self.hovered_elements.remove(element)
-        if element in self.pressed_elements: self.pressed_elements.remove(element)
-
     def reload_element(self, element: Element) -> None:
         element.reload_required = False
         
@@ -63,17 +57,11 @@ class Renderer:
                 if not element.hovered:
                     element.hovered = True
 
-                    self.hovered_elements.append(element)
-
                 if self.lmb_pressed:
                     if not element.pressed:
                         element.pressed = True
-                        self.pressed_elements.append(element)
                 else:
                     element.pressed = False
-                    if element in self.pressed_elements: self.pressed_elements.remove(element)
-
-                self.hovered_elements.append(element)
 
                 if element.tag == "a": hand_cursor = True
 
@@ -119,7 +107,7 @@ class Renderer:
         self.mouse_pos = (self.mouse_pos[0]+self.scroll_x, self.mouse_pos[1]+self.scroll_y-50)
 
         self.lmb_pressed = pg.mouse.get_pressed()[0]
-        
+
         hand_cursor: bool = self.search_children_iterative_preoder_traversal(self.html_parser.document.html_element)
 
         if hand_cursor:
