@@ -1,7 +1,7 @@
 import pygame as pg
 from typing import Dict, List
 from Ui.elements import INLINE_ELEMENTS
-from config import WIN_WIDTH, WIN_HEIGHT
+from config import WIN_WIDTH, WIN_HEIGHT, LINK_NORMAL_COLOR, PRESSED_LINK_COLOR
 
 # IF PYTHON VERSION == 3.11+ UNCOMMENT THIS LINE AND COMMENT OUT THE OTHER ONE
 #from typing import Self
@@ -11,14 +11,18 @@ from typing_extensions import Self
 
 class Element:
     def __init__(self, tag: str, attributes: Dict, rect: pg.Rect, rect_unused: pg.Rect, styles: Dict[str, any] = {},
-                 width: int = WIN_WIDTH, height: int = WIN_HEIGHT, parent: Self = None, inline_index: int = 0) -> None:
+                 width: int = WIN_WIDTH, height: int = WIN_HEIGHT, parent: Self = None, inline_index: int = 0,
+                 depth: int = 0) -> None:
         
         self.tag: str = tag
         self.attributes: Dict = attributes
         self.children: List = []
         self.parent: Element = parent
 
+        self.update_function: callable = self.null_update()
+
         self.inline_index: int = inline_index
+        self.depth: int = depth
 
         # surface and render attributes
         self.max_width: int = width
@@ -34,6 +38,15 @@ class Element:
 
         self.scroll_x: float = 0.0
         self.scroll_y: float = 0.0
+
+        self.reload_required: bool = False
+        self.style_overides: Dict[str, any] = {}
+
+        self.get_update_function()
+
+    def get_update_function(self) -> None:
+        if self.tag == "a": self.update_function = self.update_link
+        else: self.update_function = self.null_update
 
     def resize_family_rects(self, parent: Self) -> None:
         if parent is None: return
@@ -56,5 +69,26 @@ class Element:
 
             parent.rect.height += self.rect.height
 
+    def add_status(self, status: Dict[str, any]) -> None:
+        for key in status:
+            if key == "hovered": self.hovered = status[key]
+            elif key == "pressed": self.pressed = status[key]
+
     def update(self) -> None:
-        ...
+        self.update_function()
+
+        return self.reload_required
+
+    def update_link(self) -> None:
+        #print(self.hovered, self.pressed)
+        if self.pressed:
+            if self.styles["color"] != PRESSED_LINK_COLOR:
+                self.style_overides["color"] = PRESSED_LINK_COLOR
+                self.reload_required = True
+        else:
+            if self.styles["color"] != LINK_NORMAL_COLOR:
+                self.style_overides["color"] = LINK_NORMAL_COLOR
+                self.reload_required = True
+
+    def null_update(self) -> None:
+        return

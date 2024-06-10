@@ -45,6 +45,7 @@ class Window:
             
             for event in pg.event.get():
                 if event.type == pg.QUIT:
+                    pg.image.save(self.renderer.html_parser.styled_text.rendered_text, "final.png")
                     pg.quit()
                     exit()
 

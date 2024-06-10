@@ -4,7 +4,6 @@ from Engine.DOM.document import Document
 from Engine.DOM.element import Element
 from Engine.html_parser import HTMLParser
 from Engine.STR.renderer import StyledText
-from config import WIN_WIDTH, WIN_HEIGHT
 from typing import List, Tuple
 
 class Renderer:
@@ -51,13 +50,19 @@ class Renderer:
         if element in self.hovered_elements: self.hovered_elements.remove(element)
         if element in self.pressed_elements: self.pressed_elements.remove(element)
 
-    def search_children(self, element: Element, hand_cursor: bool = False) -> None:
+    def reload_element(self, element: Element) -> None:
+        element.reload_required = False
+        
+        self.html_parser.reparse_element(element, element.style_overides)
+
+    def search_children(self, element: Element, hand_cursor: bool = False) -> bool:
         if element is None: return hand_cursor
 
         if element.rect.collidepoint(self.mouse_pos):
             if not element.rect_unused.collidepoint(self.mouse_pos):                
                 if not element.hovered:
                     element.hovered = True
+
                     self.hovered_elements.append(element)
 
                 if self.lmb_pressed:
@@ -83,7 +88,9 @@ class Renderer:
 
             hand_cursor = self.search_children(child, hand_cursor)
 
-        element.update()
+        reload_required: bool = element.update()
+
+        if reload_required: self.reload_element(element)
 
         return hand_cursor
 

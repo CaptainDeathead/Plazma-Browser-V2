@@ -36,7 +36,9 @@ class HTMLParser:
         self.container_width: int = width
         self.container_height: int = height
 
-    def recurse_tag_children(self, tag: element.Tag, parent_element: Element, inline_elements: int = 0, depth: int = 0) -> None:
+    def recurse_tag_children(self, tag: element.Tag, parent_element: Element, inline_elements: int = 0, depth: int = 0,
+                             style_overides: Dict[str, any] | None = None, element_status: Dict[str, any] | None = None) -> None:
+        
         if self.stop_loading: return
         
         for child_tag in tag.children:
@@ -108,7 +110,7 @@ class HTMLParser:
 
                 # ---------- PARSING ----------
 
-                if "style" in child_tag.attrs:
+                elif "style" in child_tag.attrs:
                     styles = child_tag.attrs["style"]
 
                     sheet: CSSStyleSheet = parseString(child_tag.name + "{ " + styles + " }")
@@ -136,11 +138,13 @@ class HTMLParser:
                 element_height: int = int(remove_units(str(child_tag.attrs.get("height", tag_styles.get("height", 0))),
                                                        tag_styles["font-size"], parent_element.styles["font-size"],
                                                        self.container_width, self.container_height))
+                
+                if style_overides is not None:
+                    tag_styles.update(style_overides)
+                    #print(tag_styles)
 
                 if child_tag.name == 'browser_text':
                     text_rect, text_rect_unused = self.styled_text.renderStyledText(f"{child_tag.attrs['text']}", tag_styles)
-
-                    #print(child_tag.name, text_rect, text_rect_unused)
 
                     if SHOW_PRIMARY_SURFACE_CONTAINERS:
                         text_rect_dev_surface: pg.Surface = pg.Surface((text_rect.width, text_rect.height))
@@ -155,20 +159,73 @@ class HTMLParser:
 
                     new_element: Element = Element(child_tag.name, child_tag.attrs, text_rect, text_rect_unused,
                                                         tag_styles, element_width, element_height, parent_element,
-                                                        inline_elements)
+                                                        inline_elements, depth)
                 else:
-                    if child_tag.name == 'a':
-                        tag_styles["color"] = LINK_NORMAL_COLOR
+                    if child_tag.name == 'a' and "color" not in tag_styles: tag_styles["color"] = LINK_NORMAL_COLOR
 
                     new_element: Element = Element(child_tag.name, child_tag.attrs, pg.Rect(0, 0, 0, 0), pg.Rect(0, 0, 0, 0),
                                                         tag_styles, element_width, element_height, parent_element,
-                                                        inline_elements)
+                                                        inline_elements, depth)
+                    
+                if element_status != None: new_element.add_status(element_status)
 
                 parent_element.children.append(new_element)
 
                 self.recurse_tag_children(child_tag, parent_element.children[-1], inline_elements, depth + 1)
 
                 new_element.resize_family_rects(new_element.parent)
+
+    def reparse_element(self, browser_element: Element, style_overides: Dict[str, any] | None = None) -> None:
+        """
+        WARNING: THIS CODE IS AN ABSOLUTE MESS RIGHT NOW!!!
+        """
+
+        if style_overides == {}: style_overides = None
+
+        element_as_bs4: element = BeautifulSoup(browser_element.attributes["html"], 'html.parser')
+        element_as_bs4.attrs = browser_element.attributes
+
+        elem_rect: pg.Rect = browser_element.rect
+
+        self.styled_text.rendered_text.fill((255, 255, 255), elem_rect)
+
+        # get the area underneath the element being changed
+        surface_under_rect: pg.Rect = pg.Rect(0, elem_rect.y + elem_rect.height,
+                                       self.styled_text.rendered_text.get_width(), self.styled_text.total_y - elem_rect.y)
+        
+        # save the area so it can be added back later
+        surface_under: pg.Surface = pg.Surface((surface_under_rect.width, surface_under_rect.height))
+        surface_under.blit(self.styled_text.rendered_text, (0, 0), surface_under_rect)
+
+        # remove the area
+        self.styled_text.rendered_text.fill((255, 255, 255), surface_under_rect)
+
+        # move the 'cursor' back to the element in styled_text (moves it to the start of the area)
+        self.styled_text.total_x = elem_rect.x
+        self.styled_text.total_y = elem_rect.y
+
+        element_status: Dict[str, any] = {
+            "hovered": browser_element.hovered,
+            "pressed": browser_element.pressed
+        }
+
+        browser_element.parent.children.remove(browser_element)
+
+        self.recurse_tag_children(element_as_bs4, browser_element.parent, browser_element.inline_index, browser_element.depth,
+                                  style_overides, element_status)
+
+        if surface_under_rect.height > self.styled_text.rendered_text.get_height():
+            resized_rendered_text: pg.Surface = pg.Surface((self.styled_text.rendered_text.get_width(),
+                                                            self.styled_text.rendered_text.get_height()\
+                                                            +self.styled_text.render_height))
+            resized_rendered_text.fill((255, 255, 255))
+            resized_rendered_text.blit(self.styled_text.rendered_text, (0, 0))
+            self.styled_text.rendered_text = resized_rendered_text
+
+        # re-add the area
+        self.styled_text.rendered_text.blit(surface_under, (surface_under_rect.x, self.styled_text.total_y + elem_rect.height))
+
+        self.styled_text.total_y += surface_under_rect.height
         
     def parseHTML(self, html: str, thread_id: int = 0) -> Document | None:
         html = "<plazma-browser>" + html + "</plazma-browser>"
