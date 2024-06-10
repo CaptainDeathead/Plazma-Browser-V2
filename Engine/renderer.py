@@ -97,8 +97,10 @@ class Renderer:
 
             if new_hand_cursor == True: hand_cursor = new_hand_cursor
 
-            for childNode in node.children:
-                nodeStack.append(childNode)
+            # only update children if parent is hovered
+            if node.hovered:
+                for childNode in node.children:
+                    nodeStack.append(childNode)
 
         return hand_cursor
 
