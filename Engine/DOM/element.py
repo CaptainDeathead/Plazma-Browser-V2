@@ -33,6 +33,7 @@ class Element:
         
         self.hovered: bool = False
         self.pressed: bool = False
+        self.clicked: bool = False
 
         self.styles: Dict[str, any] = styles
 
@@ -80,7 +81,11 @@ class Element:
         return self.reload_required
 
     def update_link(self) -> None:
-        #print(self.hovered, self.pressed)
+        if self.clicked:
+            # TODO: process href here
+            # ...
+            self.clicked = False
+
         if self.pressed:
             if self.styles["color"] != PRESSED_LINK_COLOR:
                 self.style_overides["color"] = PRESSED_LINK_COLOR
