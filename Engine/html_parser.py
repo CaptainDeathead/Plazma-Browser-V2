@@ -57,7 +57,10 @@ class HTMLParser:
                 text_rect_unused: pg.Rect = parent_element.rect_unused
 
                 # inherit parent styles
-                tag_styles: Dict[str, any] = deepcopy(parent_element.styles)
+                tag_styles: Dict[str, any] = parent_element.styles.copy()
+                
+                # deepcopy if it contains nestled things like lists or whatever (points to the same reference)
+                if id(tag_styles) == id(parent_element.styles): tag_styles: Dict[str, any] = deepcopy(parent_element.styles)
 
                 # add styles for text info when sizing fonts
                 tag_styles["text-tag-size"] = UI_TEXT_TAG_SIZES.get(child_tag.name, 16)

@@ -84,6 +84,7 @@ class Element:
         if self.clicked:
             # TODO: process href here
             # ...
+            url: str = self.attributes.get("href", "#")
             self.clicked = False
 
         if self.pressed:

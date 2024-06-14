@@ -5,6 +5,7 @@ from Engine.DOM.element import Element
 from Engine.html_parser import HTMLParser
 from Engine.STR.renderer import StyledText
 from typing import List, Tuple
+from copy import deepcopy
 
 class Renderer:
     def __init__(self, manager: pgu.UIManager, width: int, height: int):
@@ -25,9 +26,6 @@ class Renderer:
         self.lmb_pressed: bool = pg.mouse.get_pressed()[0]
 
         self.mouse_type: int = pg.SYSTEM_CURSOR_ARROW
-
-        self.hovered_elements: List[Element] = []
-        self.new_hovered_elements: List[Element] = []
 
     def move_scroll_x(self, scroll_x: float) -> None:
         self.scroll_x += scroll_x
@@ -59,14 +57,14 @@ class Renderer:
 
         if element.rect.collidepoint(self.mouse_pos):
             if not element.rect_unused.collidepoint(self.mouse_pos):                
-                if not element.hovered:
-                    element.hovered = True
-                    self.new_hovered_elements.append(element)
+                if not element.hovered: element.hovered = True
 
                 if self.lmb_pressed:
                     if not element.pressed:
                         element.pressed = True
                 else:
+                    if element.pressed: element.clicked = True
+                    
                     element.pressed = False
 
                 if element.tag == "a": hand_cursor = True
@@ -75,10 +73,6 @@ class Renderer:
                 self.remove_mouse_status(element)
         else:
             self.remove_mouse_status(element)
-        
-        for child in element.children:
-            child.hovered = element.hovered
-            child.pressed = element.pressed
 
         reload_required: bool = element.update()
 
@@ -107,10 +101,6 @@ class Renderer:
             if node.hovered:
                 for childNode in node.children:
                     nodeStack.append(childNode)
-
-        for hovered_elem in self.hovered_elements:
-            if hovered_elem not in self.new_hovered_elements: element.clicked = True
-            else: self.new_hovered_elements.append(hovered_elem)
 
         return hand_cursor
 
