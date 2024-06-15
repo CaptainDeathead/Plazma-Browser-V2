@@ -28,6 +28,24 @@ class HScrollBar:
         self.left_button: PGUButton = PGUButton(pg.Rect(self.x, self.y, self.height, self.height), "<", self.manager, lambda: scroll_action(-BUTTON_SCROLL_INCREMENT))
         self.right_button: PGUButton = PGUButton(pg.Rect(self.x+self.width-self.height, self.y, self.height, self.height), ">", self.manager, lambda: scroll_action(BUTTON_SCROLL_INCREMENT))
 
+    def resize(self, new_dimentions: pg.Rect) -> None:
+        self.x = new_dimentions.x
+        self.y = new_dimentions.y
+        self.width = new_dimentions.width
+        self.height = new_dimentions.height
+
+        self.scroll_bar_width = self.width - self.height * 2
+
+        self.scroll_bar_bg_rect: pg.Rect = pg.Rect(self.x+self.height, self.y, self.scroll_bar_width, self.height)
+
+        self.recalculate_dimentions()
+
+        self.left_button.set_position((self.x, self.y))
+        self.right_button.set_position((self.x+self.width-self.height, self.y))
+
+        self.left_button.set_dimensions((self.height, self.height))
+        self.right_button.set_dimensions((self.height, self.height))
+
     def recalculate_dimentions(self) -> None:
         self.bar_x = (self.scroll_bar_width**2 + self.scroll*self.scroll_bar_width) / self.max_scroll
         self.bar_width = self.scroll_bar_width**2 / self.max_scroll
@@ -69,6 +87,24 @@ class VScrollBar:
 
         self.up_button: PGUButton = PGUButton(pg.Rect(self.x, self.y, self.width, self.width), "^", self.manager, lambda: scroll_action(-BUTTON_SCROLL_INCREMENT))
         self.down_button: PGUButton = PGUButton(pg.Rect(self.x, self.y+self.height-self.width, self.width, self.width), "˅", self.manager, lambda: scroll_action(BUTTON_SCROLL_INCREMENT))
+
+    def resize(self, new_dimentions: pg.Rect) -> None:
+        self.x = new_dimentions.x
+        self.y = new_dimentions.y
+        self.width = new_dimentions.width
+        self.height = new_dimentions.height
+
+        self.scroll_bar_height = self.height - self.width * 2
+
+        self.scroll_bar_bg_rect: pg.Rect = pg.Rect(self.x, self.y+self.width, self.width, self.scroll_bar_height)
+        
+        self.recalculate_dimentions()
+
+        self.up_button.set_position((self.x, self.y))
+        self.down_button.set_position((self.x, self.y+self.height-self.width))
+
+        self.up_button.set_dimensions((self.width, self.width))
+        self.down_button.set_dimensions((self.width, self.width))
 
     def recalculate_dimentions(self) -> None:
         self.bar_y = (self.scroll_bar_height**2 + self.scroll*self.scroll_bar_height) / self.max_scroll

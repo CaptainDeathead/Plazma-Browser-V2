@@ -18,20 +18,22 @@ pg.init()
 
 class Window:
     def __init__(self):
-        self.screen: pg.Surface = pg.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
+        self.screen: pg.Surface = pg.display.set_mode((WIN_WIDTH, WIN_HEIGHT), pg.RESIZABLE)
         self.manager: pgu.UIManager = pgu.UIManager((WIN_WIDTH, WIN_HEIGHT))
-        self.renderer: Renderer = Renderer(self.manager, 800, 550, self.load_page)
+        self.renderer: Renderer = Renderer(self.manager, WIN_WIDTH, WIN_HEIGHT-50, self.load_page)
         
-        self.search_bar: SearchBar = SearchBar(pg.Rect(200, 10, 400, 30), self.manager)
+        self.search_bar: SearchBar = SearchBar(pg.Rect(200, 10, WIN_WIDTH-400, 30), self.manager)
         
-        self.h_scroll_bar: HScrollBar = HScrollBar(self.manager, pg.Rect(0, 580, 780, 20), 780, self.renderer.move_scroll_x)
-        self.v_scroll_bar: VScrollBar = VScrollBar(self.manager, pg.Rect(780, 50, 20, 530), 530, self.renderer.move_scroll_y)
+        self.h_scroll_bar: HScrollBar = HScrollBar(self.manager, pg.Rect(0, WIN_HEIGHT-20, WIN_WIDTH-20, 20), WIN_WIDTH-20, self.renderer.move_scroll_x)
+        self.v_scroll_bar: VScrollBar = VScrollBar(self.manager, pg.Rect(WIN_WIDTH-20, 50, 20, WIN_HEIGHT-70), WIN_HEIGHT-70, self.renderer.move_scroll_y)
         
     def load_page(self, url: str) -> None:
         response: requests.Response | str = get_page(url)
         transfer_response(self.renderer, response)
 
     def main(self):
+        global WIN_WIDTH, WIN_HEIGHT
+
         pg.display.set_caption(BASE_TITLE + "New tab")
 
         if DEBUG_MODE:
@@ -59,6 +61,19 @@ class Window:
                         self.renderer.move_scroll_x(-event.y * 30)
                     else:
                         self.renderer.move_scroll_y(-event.y * 30)
+
+                elif event.type == pg.VIDEORESIZE:
+                    WIN_WIDTH, WIN_HEIGHT = self.screen.get_width(), self.screen.get_height()
+
+                    self.manager.set_window_resolution((WIN_WIDTH, WIN_HEIGHT))
+
+                    self.search_bar.set_dimensions((WIN_WIDTH-400, 30))
+
+                    self.h_scroll_bar.resize(pg.Rect(0, WIN_HEIGHT-20, WIN_WIDTH-20, 20))
+                    self.v_scroll_bar.resize(pg.Rect(WIN_WIDTH-20, 50, 20, WIN_HEIGHT-70))
+
+                    self.renderer.width = WIN_WIDTH
+                    self.renderer.height = WIN_HEIGHT
                     
                 elif event.type == pgu.UI_TEXT_ENTRY_FINISHED: self.load_page(self.search_bar.text)
                     

@@ -1,8 +1,8 @@
 import platform
 from typing import Tuple
 
-WIN_WIDTH: int = 800
-WIN_HEIGHT: int = 600
+WIN_WIDTH: int = 1600
+WIN_HEIGHT: int = 900
 
 BUTTON_SCROLL_INCREMENT: int = 100
 
