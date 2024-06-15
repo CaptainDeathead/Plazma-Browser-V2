@@ -1,6 +1,7 @@
 import pygame as pg
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from Ui.elements import INLINE_ELEMENTS
+from Engine.url_utils import resolve_url_in_browser_ctx
 from config import WIN_WIDTH, WIN_HEIGHT, LINK_NORMAL_COLOR, PRESSED_LINK_COLOR
 
 # IF PYTHON VERSION == 3.11+ UNCOMMENT THIS LINE AND COMMENT OUT THE OTHER ONE
@@ -41,7 +42,10 @@ class Element:
         self.scroll_y: float = 0.0
 
         self.reload_required: bool = False
+        self.page_reload_required: bool = False
         self.style_overides: Dict[str, any] = {}
+
+        self.url_redirect: str = ""
 
         self.get_update_function()
 
@@ -75,16 +79,20 @@ class Element:
             if key == "hovered": self.hovered = status[key]
             elif key == "pressed": self.pressed = status[key]
 
-    def update(self) -> None:
+    def update(self) -> Tuple[bool, bool]:
         self.update_function()
 
-        return self.reload_required
+        return (self.reload_required, self.page_reload_required)
 
     def update_link(self) -> None:
         if self.clicked:
-            # TODO: process href here
-            # ...
             url: str = self.attributes.get("href", "#")
+            full_url: str = resolve_url_in_browser_ctx(url)
+
+            if full_url != "#":
+                self.page_reload_required = True
+                self.url_redirect = full_url
+
             self.clicked = False
 
         if self.pressed:

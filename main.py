@@ -6,7 +6,6 @@ from Ui.button import PGUButton
 from Engine.renderer import Renderer
 import requests
 import logging
-from Engine.DOM.document import Document
 from Engine.loader import transfer_response, get_page
 from threading import Thread
 from config import *
@@ -21,14 +20,17 @@ class Window:
     def __init__(self):
         self.screen: pg.Surface = pg.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
         self.manager: pgu.UIManager = pgu.UIManager((WIN_WIDTH, WIN_HEIGHT))
-        self.renderer: Renderer = Renderer(self.manager, 800, 550)
-        self.document: Document = Document()
+        self.renderer: Renderer = Renderer(self.manager, 800, 550, self.load_page)
         
         self.search_bar: SearchBar = SearchBar(pg.Rect(200, 10, 400, 30), self.manager)
         
         self.h_scroll_bar: HScrollBar = HScrollBar(self.manager, pg.Rect(0, 580, 780, 20), 780, self.renderer.move_scroll_x)
         self.v_scroll_bar: VScrollBar = VScrollBar(self.manager, pg.Rect(780, 50, 20, 530), 530, self.renderer.move_scroll_y)
         
+    def load_page(self, url: str) -> None:
+        response: requests.Response | str = get_page(url)
+        transfer_response(self.renderer, response)
+
     def main(self):
         pg.display.set_caption(BASE_TITLE + "New tab")
 
@@ -36,7 +38,7 @@ class Window:
             logging.debug("DEBUG_MODE=True; Loading test page...")
             self.search_bar.set_text(BROWSER_TEST_URL)
             response: requests.Response | str = get_page(BROWSER_TEST_URL)
-            self.document = transfer_response(self.renderer, response)
+            transfer_response(self.renderer, response)
 
         clock: pg.time.Clock = pg.time.Clock()
         while 1:
@@ -58,9 +60,7 @@ class Window:
                     else:
                         self.renderer.move_scroll_y(-event.y * 30)
                     
-                elif event.type == pgu.UI_TEXT_ENTRY_FINISHED:
-                    response: requests.Response | str = get_page(self.search_bar.text)
-                    self.document = transfer_response(self.renderer, response)
+                elif event.type == pgu.UI_TEXT_ENTRY_FINISHED: self.load_page(self.search_bar.text)
                     
                 elif event.type == pgu.UI_BUTTON_PRESSED:
                     if type(event.ui_element) == PGUButton:

@@ -1,18 +1,19 @@
 import pygame as pg
 import pygame_gui as pgu
+from requests import Response
 from Engine.DOM.document import Document
 from Engine.DOM.element import Element
 from Engine.html_parser import HTMLParser
 from Engine.STR.renderer import StyledText
 from typing import List, Tuple
-from copy import deepcopy
 
 class Renderer:
-    def __init__(self, manager: pgu.UIManager, width: int, height: int):
+    def __init__(self, manager: pgu.UIManager, width: int, height: int, load_page: callable):
         self.manager: pgu.UIManager = manager
         self.styled_text: StyledText = StyledText("\n", width, height, (0, 0, 0), (255, 255, 255), "Arial", 16, (2, 20, 2, 20))
         self.html_parser: HTMLParser = HTMLParser(self.manager, self.styled_text, width, height)
         self.display_surf: pg.Surface = pg.Surface((width, height))
+        self.load_page: callable = load_page
 
         self.width: int = width
         self.height: int = height
@@ -64,7 +65,7 @@ class Renderer:
                         element.pressed = True
                 else:
                     if element.pressed: element.clicked = True
-                    
+
                     element.pressed = False
 
                 if element.tag == "a": hand_cursor = True
@@ -74,9 +75,10 @@ class Renderer:
         else:
             self.remove_mouse_status(element)
 
-        reload_required: bool = element.update()
+        reload_required, page_reload_required = element.update()
 
-        if reload_required: self.reload_element(element)
+        if page_reload_required: self.load_page(element.url_redirect)
+        elif reload_required: self.reload_element(element)
 
         return hand_cursor
 

@@ -58,7 +58,7 @@ class HTMLParser:
 
                 # inherit parent styles
                 tag_styles: Dict[str, any] = parent_element.styles.copy()
-                
+
                 # deepcopy if it contains nestled things like lists or whatever (points to the same reference)
                 if id(tag_styles) == id(parent_element.styles): tag_styles: Dict[str, any] = deepcopy(parent_element.styles)
 

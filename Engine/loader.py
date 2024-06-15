@@ -7,9 +7,12 @@ from config import HTML_LOAD_THREAD
 from Engine.threads import LoaderThread
 from typing import Dict
 from fake_useragent import UserAgent
+from Engine.url_utils import remove_whitespace, set_browser_url
 
 USER_AGENT: str = UserAgent().chrome
 loader_thread: LoaderThread = None
+
+browser_current_url: str = ""
 
 def load_html(renderer: Renderer, html: str, mutable_document_class: Document | None) -> Document:
     if HTML_LOAD_THREAD:
@@ -59,7 +62,11 @@ def transfer_response(renderer: Renderer, response: requests.Response | TextIOWr
     return document
 
 def get_page(url: str) -> requests.Response | str:
-    if "file://" in url and url.index("file://") == 0:
+    url = remove_whitespace(url)
+
+    set_browser_url(url)
+
+    if url.startswith("file://"):
         logging.debug(f"Attempting to open file: '{url}'.")
         
         try:
@@ -78,7 +85,7 @@ def get_page(url: str) -> requests.Response | str:
     headers: Dict[str, str] = {"User-Agent": USER_AGENT}
 
     try:
-        response: requests.Response = requests.get(url, timeout=10, allow_redirects=True)
+        response: requests.Response = requests.get(url, timeout=10, allow_redirects=True, headers=headers)
         logging.debug("Connection succeeded! Progressing to html parsing...")
         return response
 
