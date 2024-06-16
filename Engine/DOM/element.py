@@ -17,7 +17,7 @@ class Element:
         
         self.tag: str = tag
         self.attributes: Dict = attributes
-        self.children: List = []
+        self.children: List[Self] = []
         self.parent: Element = parent
 
         self.update_function: callable = self.null_update()

@@ -10,8 +10,13 @@ HTML_LOAD_THREAD: bool = True
 
 
 DEBUG_MODE: bool = True
+DEVTOOLS_ENABLED: bool = True
 SHOW_PRIMARY_SURFACE_CONTAINERS: bool = False
 SHOW_ALL_SURFACE_CONTAINERS: bool = True
+
+# devtools settings
+DEVTOOLS_WIN_WIDTH: int = 800
+DEVTOOLS_WIN_HEIGHT: int = 600
 
 # platform settings
 OS_NAME: str = platform.system()
@@ -28,7 +33,15 @@ ENGINE_VERSION: str = "0.1.0dev"
 
 ADDITIONAL_INFO: str = "DevBuild (unstable)"
 
-BASE_TITLE: str = f"{BROWSER_NAME}_v{BROWSER_VERSION} | {ENGINE_NAME}_v{ENGINE_VERSION} | INFO: {ADDITIONAL_INFO} | "
+BASE_TITLE: str = f"{BROWSER_NAME}_v{BROWSER_VERSION} -> {ENGINE_NAME}_v{ENGINE_VERSION} | INFO: {ADDITIONAL_INFO} ~ "
+
+# devtools config
+DEVTOOLS_NAME: str = "DevMate"
+DEVTOOLS_VERSION: str = "0.1.0dev"
+
+DEVTOOLS_ADDITIONAL_INFO: str = "DevBuild (unstable)"
+
+DEVTOOLS_BASE_TITLE: str = f"{BROWSER_NAME}_v{BROWSER_VERSION} -> {DEVTOOLS_NAME}_v{DEVTOOLS_VERSION} | INFO: {DEVTOOLS_ADDITIONAL_INFO} ~ "
 
 # general settings
 LINK_NORMAL_COLOR: Tuple[int, int, int] = (65, 145, 245)

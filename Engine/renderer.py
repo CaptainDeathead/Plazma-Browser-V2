@@ -16,6 +16,8 @@ class Renderer:
         self.dev_tools_surface: pg.Surface = pg.Surface((width, height), pg.SRCALPHA, 32)
         self.load_page: callable = load_page
 
+        self.just_finished_loading: bool = False
+
         self.width: int = width
         self.height: int = height
 
@@ -148,6 +150,8 @@ class Renderer:
         self.styled_text.clear()
 
         document: Document = self.html_parser.parseHTML(html)
+
+        self.just_finished_loading = True
 
         return document
     

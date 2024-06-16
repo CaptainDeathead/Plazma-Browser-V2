@@ -1,18 +1,28 @@
 import pygame as pg
 import pygame_gui as pgu
+import requests
+import logging
+from multiprocessing import Process, Queue
 from Ui.search_bar import SearchBar
 from Ui.scrollbar import HScrollBar, VScrollBar
 from Ui.button import PGUButton
 from Engine.renderer import Renderer
-import requests
-import logging
 from Engine.loader import transfer_response, get_page
-from threading import Thread
+from devtools import start_inspector
 from config import *
 
 logging.basicConfig()
 logging.root.setLevel(logging.NOTSET)
 logging.basicConfig(level=logging.NOTSET)
+
+devtools_update_queue: Queue = Queue()
+devtools_patch_queue: Queue = Queue()
+
+devtools_proc: Process | None = None
+
+if DEVTOOLS_ENABLED:
+    devtools_proc = Process(target=start_inspector, args=(devtools_update_queue, devtools_patch_queue))
+    devtools_proc.start()
 
 pg.init()
 
@@ -50,6 +60,9 @@ class Window:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     pg.image.save(self.renderer.html_parser.styled_text.rendered_text, "final.png")
+
+                    if devtools_proc is not None: devtools_proc.kill()
+
                     pg.quit()
                     exit()
 
@@ -81,6 +94,13 @@ class Window:
                         event.ui_element.click_action()
 
                 self.manager.process_events(event)
+
+            if self.renderer.just_finished_loading:
+                if devtools_proc is not None:
+                    logging.debug("Renderer has finished loading. Sending top level element to DevTools...")
+                    devtools_update_queue.put(self.renderer.html_parser.document.html_element)
+                
+                self.renderer.just_finished_loading = False
 
             self.screen.blit(self.renderer.render(), (0, 50))
 
