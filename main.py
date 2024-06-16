@@ -72,8 +72,7 @@ class Window:
                     self.h_scroll_bar.resize(pg.Rect(0, WIN_HEIGHT-20, WIN_WIDTH-20, 20))
                     self.v_scroll_bar.resize(pg.Rect(WIN_WIDTH-20, 50, 20, WIN_HEIGHT-70))
 
-                    self.renderer.width = WIN_WIDTH
-                    self.renderer.height = WIN_HEIGHT
+                    self.renderer.resize(WIN_WIDTH, WIN_HEIGHT)
                     
                 elif event.type == pgu.UI_TEXT_ENTRY_FINISHED: self.load_page(self.search_bar.text)
                     

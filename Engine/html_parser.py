@@ -5,7 +5,7 @@ from cssutils import parseString
 from cssutils.css import CSSStyleSheet
 from Engine.DOM.document import Document
 from Engine.DOM.element import Element
-from typing import Dict, Tuple
+from typing import Dict, List
 from bs4 import BeautifulSoup, element
 from pygame_gui import UIManager
 from Ui.elements import UI_TEXT_TAG_SIZES, TEXT_TAGS, USE_TEXTBOX_TAGS, INLINE_ELEMENTS
@@ -35,6 +35,21 @@ class HTMLParser:
 
         self.container_width: int = width
         self.container_height: int = height
+
+    def find_closest_container(self, element: Element) -> Element | None:
+        if element is None: return element
+        elif not element.istext: return element
+
+        nodeStack: List[Element] = []
+        nodeStack.append(element)
+
+        while len(nodeStack) > 0:
+            node = nodeStack.pop()
+
+            if not node.istext: return node
+            else: nodeStack.append(node.parent)
+
+        return element
 
     def recurse_tag_children(self, tag: element.Tag, parent_element: Element, inline_elements: int = 0, depth: int = 0,
                              style_overides: Dict[str, any] | None = None, element_status: Dict[str, any] | None = None) -> None:
@@ -104,10 +119,11 @@ class HTMLParser:
                         child_tag.attrs["html"] = str(child_tag).replace('\n', '')
 
                         # feed line because its a block element
-                        if parent_element is not None and type(parent_element.rect) == pg.Rect:
-                            parent_element.rect.height += self.styled_text.renderStyledText('\n')[0].height
-                        else:
-                            self.styled_text.renderStyledText('\n')[0].height
+                        if child_tag.name in INLINE_ELEMENTS:
+                            container_element = self.find_closest_container(parent_element)
+                            if container_element is not None: container_element.rect.height += self.styled_text.renderStyledText('\n')[0].height
+                        
+                        else: text_rect.height += self.styled_text.renderStyledText('\n')[0].height
                     else:
                         tag_styles['font-size'] = UI_TEXT_TAG_SIZES.get(child_tag.name, 16)
 
@@ -135,16 +151,14 @@ class HTMLParser:
                                 tag_styles[property.name] = value
 
                 element_width: int = int(remove_units(str(child_tag.attrs.get("width", tag_styles.get("width", 0))),
-                                                      tag_styles["font-size"], parent_element.styles["font-size"],
+                                                      parent_element.rect.width, parent_element.rect.width,
                                                       self.container_width, self.container_height))
                 
                 element_height: int = int(remove_units(str(child_tag.attrs.get("height", tag_styles.get("height", 0))),
-                                                       tag_styles["font-size"], parent_element.styles["font-size"],
+                                                       parent_element.rect.height, parent_element.rect.height,
                                                        self.container_width, self.container_height))
                 
-                if style_overides is not None:
-                    tag_styles.update(style_overides)
-                    #print(tag_styles)
+                if style_overides is not None: tag_styles.update(style_overides)
 
                 if child_tag.name == 'browser_text':
                     text_rect, text_rect_unused = self.styled_text.renderStyledText(f"{child_tag.attrs['text']}", tag_styles)

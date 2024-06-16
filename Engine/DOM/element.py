@@ -36,6 +36,8 @@ class Element:
         self.pressed: bool = False
         self.clicked: bool = False
 
+        self.isinline: bool = self.tag in INLINE_ELEMENTS
+
         self.styles: Dict[str, any] = styles
 
         self.scroll_x: float = 0.0

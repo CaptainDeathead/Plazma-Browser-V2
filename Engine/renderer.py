@@ -1,11 +1,11 @@
 import pygame as pg
 import pygame_gui as pgu
-from requests import Response
 from Engine.DOM.document import Document
 from Engine.DOM.element import Element
 from Engine.html_parser import HTMLParser
 from Engine.STR.renderer import StyledText
 from typing import List, Tuple
+from config import SHOW_ALL_SURFACE_CONTAINERS
 
 class Renderer:
     def __init__(self, manager: pgu.UIManager, width: int, height: int, load_page: callable):
@@ -13,6 +13,7 @@ class Renderer:
         self.styled_text: StyledText = StyledText("\n", width, height, (0, 0, 0), (255, 255, 255), "Arial", 16, (2, 20, 2, 20))
         self.html_parser: HTMLParser = HTMLParser(self.manager, self.styled_text, width, height)
         self.display_surf: pg.Surface = pg.Surface((width, height))
+        self.dev_tools_surface: pg.Surface = pg.Surface((width, height), pg.SRCALPHA, 32)
         self.load_page: callable = load_page
 
         self.width: int = width
@@ -42,7 +43,14 @@ class Renderer:
         self.display_surf: pg.Surface = pg.Surface((self.width, self.height))
         self.display_surf.blit(self.styled_text.rendered_text, (-self.scroll_x, -self.scroll_y))
 
+        self.display_surf.blit(self.dev_tools_surface.convert_alpha(), (0, 0))
+
         return self.display_surf
+    
+    def resize(self, width: int, height: int) -> None:
+        self.width, self.height = width, height
+
+        self.dev_tools_surface = pg.Surface((self.width, self.height), pg.SRCALPHA, 32)
     
     def remove_mouse_status(self, element: Element) -> None:
         element.hovered = False
@@ -52,6 +60,9 @@ class Renderer:
         element.reload_required = False
         
         self.html_parser.reparse_element(element, element.style_overides)
+
+    def reset_devtools(self) -> None:
+        self.dev_tools_surface = pg.Surface((self.width, self.height), pg.SRCALPHA, 32)
 
     def update_element(self, element: Element) -> bool:
         hand_cursor = False
@@ -79,6 +90,12 @@ class Renderer:
 
         if page_reload_required: self.load_page(element.url_redirect)
         elif reload_required: self.reload_element(element)
+
+        if SHOW_ALL_SURFACE_CONTAINERS:
+            dev_surface: pg.Surface = pg.Surface((element.rect.width, element.rect.height), pg.SRCALPHA)
+            dev_surface.set_alpha(int(element.depth*4))
+            dev_surface.fill((255, 0, 255))
+            self.dev_tools_surface.blit(dev_surface, (element.rect.x - self.scroll_x, element.rect.y - self.scroll_y))
 
         return hand_cursor
 
@@ -111,6 +128,8 @@ class Renderer:
         self.mouse_pos = (self.mouse_pos[0]+self.scroll_x, self.mouse_pos[1]+self.scroll_y-50)
 
         self.lmb_pressed = pg.mouse.get_pressed()[0]
+
+        self.reset_devtools()
 
         hand_cursor: bool = self.search_children_iterative_preoder_traversal(self.html_parser.document.html_element)
 

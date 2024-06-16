@@ -11,6 +11,7 @@ HTML_LOAD_THREAD: bool = True
 
 DEBUG_MODE: bool = True
 SHOW_PRIMARY_SURFACE_CONTAINERS: bool = False
+SHOW_ALL_SURFACE_CONTAINERS: bool = True
 
 # platform settings
 OS_NAME: str = platform.system()
