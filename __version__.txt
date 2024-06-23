@@ -9,7 +9,7 @@ Engine/renderer.py
 Engine/threads.py
 Engine/url_utils.py
 Pages/Error/connection_error.html
-Pages/Error/file_not_found_error.html
+Pages/Error/file_not_found.html
 Pages/Error/http_error.html
 Pages/Error/invalid_url_error.html
 Pages/Error/redirect_error.html
