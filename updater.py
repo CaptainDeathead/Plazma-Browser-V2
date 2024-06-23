@@ -31,7 +31,7 @@ class Updater:
         for path in self.DIRECTOY_MAP:
             print(f"Creating folder '{path}'...  ", end='', flush=True)
             os.mkdir(path)
-            print(f"Creating folder '{path}'...  Done.", flush=True)
+            print(f"\rCreating folder '{path}'...  Done.", flush=True)
         
         print("\nSuccessfully crated project structure.\n")
 
@@ -135,11 +135,26 @@ class Updater:
         self.parse_online_version()
         self.contrast_differences()
 
-    def run_STR_updater(self) -> None:
-        from Engine.STR.updater import main as update_str
+    def install_STR(self) -> None:
+        print("\nPreparing to run STR installer.")
 
         str_update_path: str = "/Engine/STR"
+
+        # write dummy __version__.txt
+        print("\nCreating dummy '__version__.txt'...  ", end='', flush=True)
+
+        with open(f"{self.PATH}{str_update_path}/__version__.txt", "w") as version_txt:
+            version_txt.write("0.0.0\nblank")
+
+        print("\rCreating dummy '__version__.txt'...  Done.", flush=True)
+
+        print("\nInvoking STR updater.\n")
+
+        from Engine.STR.updater import main as update_str
+
         update_str(str_update_path)
+
+        print("\nInstalled STR.")
 
     def download_STR(self) -> None:
         print(f"Downloading 'STR/updater.py'...", end='', flush=True)
@@ -196,7 +211,7 @@ class Updater:
             self.download_file(filename)
 
         self.download_STR()
-        self.run_STR_updater()
+        self.install_STR()
 
         print(f"\n{len(self.online_files)} files have been installed over {len(self.installed_files)} files.\nAll updates complete.")
 
