@@ -119,7 +119,10 @@ class Window:
             self.v_scroll_bar.draw(self.screen)
 
             pg.display.flip()
-            
-if __name__ == "__main__":
+
+def main() -> None:
     window: Window = Window()
     window.main()
+            
+if __name__ == "__main__":
+    main()
