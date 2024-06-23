@@ -26,7 +26,8 @@ except ModuleNotFoundError:
 
     try: import requests
     except ModuleNotFoundError:
-        print("\nFailed to install requests. You need to do it manually through pip and then re-run the updater.\nSorry for the inconveniance.")
+        print("\nRestarting...")
+        subprocess.check_call([sys.executable, "updater.py"])
         exit()
 
 import traceback
