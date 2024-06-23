@@ -1,42 +1,56 @@
 import pygame as pg
 import pygame_gui as pgu
+import requests
+import logging
+from multiprocessing import Process, Queue
 from Ui.search_bar import SearchBar
 from Ui.scrollbar import HScrollBar, VScrollBar
 from Ui.button import PGUButton
 from Engine.renderer import Renderer
-import requests
-import logging
-from Engine.DOM.document import Document
 from Engine.loader import transfer_response, get_page
-from threading import Thread
+from devtools import start_inspector
 from config import *
 
 logging.basicConfig()
 logging.root.setLevel(logging.NOTSET)
 logging.basicConfig(level=logging.NOTSET)
 
+devtools_update_queue: Queue = Queue()
+devtools_patch_queue: Queue = Queue()
+
+devtools_proc: Process | None = None
+
+if DEVTOOLS_ENABLED:
+    devtools_proc = Process(target=start_inspector, args=(devtools_update_queue, devtools_patch_queue))
+    devtools_proc.start()
+
 pg.init()
 
 class Window:
     def __init__(self):
-        self.screen: pg.Surface = pg.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
+        self.screen: pg.Surface = pg.display.set_mode((WIN_WIDTH, WIN_HEIGHT), pg.RESIZABLE)
         self.manager: pgu.UIManager = pgu.UIManager((WIN_WIDTH, WIN_HEIGHT))
-        self.renderer: Renderer = Renderer(self.manager, 800, 550)
-        self.document: Document = Document()
+        self.renderer: Renderer = Renderer(self.manager, WIN_WIDTH, WIN_HEIGHT-50, self.load_page)
         
-        self.search_bar: SearchBar = SearchBar(pg.Rect(200, 10, 400, 30), self.manager)
+        self.search_bar: SearchBar = SearchBar(pg.Rect(200, 10, WIN_WIDTH-400, 30), self.manager)
         
-        self.h_scroll_bar: HScrollBar = HScrollBar(self.manager, pg.Rect(0, 580, 780, 20), 780, self.renderer.move_scroll_x)
-        self.v_scroll_bar: VScrollBar = VScrollBar(self.manager, pg.Rect(780, 50, 20, 530), 530, self.renderer.move_scroll_y)
+        self.h_scroll_bar: HScrollBar = HScrollBar(self.manager, pg.Rect(0, WIN_HEIGHT-20, WIN_WIDTH-20, 20), WIN_WIDTH-20, self.renderer.move_scroll_x)
+        self.v_scroll_bar: VScrollBar = VScrollBar(self.manager, pg.Rect(WIN_WIDTH-20, 50, 20, WIN_HEIGHT-70), WIN_HEIGHT-70, self.renderer.move_scroll_y)
         
+    def load_page(self, url: str) -> None:
+        response: requests.Response | str = get_page(url)
+        transfer_response(self.renderer, response)
+
     def main(self):
-        pg.display.set_caption("Plazma Browser (Dev) | New tab")
+        global WIN_WIDTH, WIN_HEIGHT
+
+        pg.display.set_caption(BASE_TITLE + "New tab")
 
         if DEBUG_MODE:
             logging.debug("DEBUG_MODE=True; Loading test page...")
             self.search_bar.set_text(BROWSER_TEST_URL)
             response: requests.Response | str = get_page(BROWSER_TEST_URL)
-            self.document = transfer_response(self.renderer, response)
+            transfer_response(self.renderer, response)
 
         clock: pg.time.Clock = pg.time.Clock()
         while 1:
@@ -45,6 +59,10 @@ class Window:
             
             for event in pg.event.get():
                 if event.type == pg.QUIT:
+                    pg.image.save(self.renderer.html_parser.styled_text.rendered_text, "final.png")
+
+                    if devtools_proc is not None: devtools_proc.kill()
+
                     pg.quit()
                     exit()
 
@@ -56,16 +74,33 @@ class Window:
                         self.renderer.move_scroll_x(-event.y * 30)
                     else:
                         self.renderer.move_scroll_y(-event.y * 30)
+
+                elif event.type == pg.VIDEORESIZE:
+                    WIN_WIDTH, WIN_HEIGHT = self.screen.get_width(), self.screen.get_height()
+
+                    self.manager.set_window_resolution((WIN_WIDTH, WIN_HEIGHT))
+
+                    self.search_bar.set_dimensions((WIN_WIDTH-400, 30))
+
+                    self.h_scroll_bar.resize(pg.Rect(0, WIN_HEIGHT-20, WIN_WIDTH-20, 20))
+                    self.v_scroll_bar.resize(pg.Rect(WIN_WIDTH-20, 50, 20, WIN_HEIGHT-70))
+
+                    self.renderer.resize(WIN_WIDTH, WIN_HEIGHT)
                     
-                elif event.type == pgu.UI_TEXT_ENTRY_FINISHED:
-                    response: requests.Response | str = get_page(self.search_bar.text)
-                    self.document = transfer_response(self.renderer, response)
+                elif event.type == pgu.UI_TEXT_ENTRY_FINISHED: self.load_page(self.search_bar.text)
                     
                 elif event.type == pgu.UI_BUTTON_PRESSED:
                     if type(event.ui_element) == PGUButton:
                         event.ui_element.click_action()
 
                 self.manager.process_events(event)
+
+            if self.renderer.just_finished_loading:
+                if devtools_proc is not None:
+                    logging.debug("Renderer has finished loading. Sending top level element to DevTools...")
+                    devtools_update_queue.put(self.renderer.html_parser.document.html_element)
+                
+                self.renderer.just_finished_loading = False
 
             self.screen.blit(self.renderer.render(), (0, 50))
 
@@ -84,7 +119,10 @@ class Window:
             self.v_scroll_bar.draw(self.screen)
 
             pg.display.flip()
-            
-if __name__ == "__main__":
+
+def main() -> None:
     window: Window = Window()
     window.main()
+            
+if __name__ == "__main__":
+    main()

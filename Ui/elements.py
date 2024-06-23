@@ -33,3 +33,8 @@ USE_TEXTBOX_TAGS: List = [
 TEXT_TAGS: List = [
     "h1", "h2", "h3", "h4", "h5", "h6", "p"
 ]
+
+INLINE_ELEMENTS: List[str] = ["a", "abbr", "acronym", "b", "bdo", "big", "br", "button", "cite",
+                              "code", "dfn", "em", "i", "img", "input", "kbd", "label", "map",
+                              "object", "output", "q", "samp", "script", "select", "small", "span",
+                              "strong", "sub", "sup", "textarea", "time", "tt", "var", "browser_text"]

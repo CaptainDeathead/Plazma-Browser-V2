@@ -1,4 +1,7 @@
 **/__pycache__/
 .vscode/
+venv
+.idea
 main.pstats
 output.png
+screenshots/
