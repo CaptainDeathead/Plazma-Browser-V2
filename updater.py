@@ -238,11 +238,11 @@ class Updater:
         
         if not self.setting_up: return
 
-        print("\nInstalling requirements.txt...", end='', flush=True)
+        print("\nInstalling requirements.txt.")
 
         try: self.install_requirements()
         except:
-            print(f"\rInstalling requirements.txt...  Failed!", flush=True)
+            print("\nFailed install requirements.txt!\n")
             traceback.print_exc()
             print("\nDo not worry, the browser has been installed, it just couldn't install the required dependencies with pip.")
             print("Just install 'requirements.txt' with pip and the browser is good to go!")
@@ -251,7 +251,7 @@ class Updater:
         print("It may have been unsuccessfull so check the logs above for any error messages.")
 
     def completion(self) -> None:
-        update_time: float = time() - self.start_time()
+        update_time: float = time() - self.start_time
 
         m, s = divmod(update_time, 60)
         h, m = divmod(m, 60)
