@@ -6,8 +6,11 @@ DO NOT MODIFY THIS CODE AS IT MAY BREAK YOUR INSTALL
 """
 
 import os
+import subprocess
+import sys
 import requests
 import traceback
+from time import time
 from typing import List
 
 class Updater:
@@ -22,9 +25,13 @@ class Updater:
     ]
 
     def __init__(self) -> None:
+        self.start_time: float = time()
+
         self.load_installed()
         self.get_latest_changes()
         self.download_and_install()
+        self.setup()
+        self.completion()
 
     def setup_directories(self) -> None:
         print("\nInitializing folder structure.\n")
@@ -55,6 +62,8 @@ class Updater:
             if download_browser_input == "y":
                 print("\nPlease wait while the browser is downloaded and installed on your system.\n")
 
+                self.setting_up: bool = True
+
                 # write dummy __version__.txt
                 print("\nCreating dummy '__version__.txt'...  ", end='', flush=True)
 
@@ -69,6 +78,8 @@ class Updater:
                 print("Run the updater if you change your mind.")
                 exit()
         else:
+            self.setting_up: bool = False
+
             print("\rVerifying '__version__.txt' exists...  Done.", flush=True)
 
         print("Loading '__version__.txt'...", end='', flush=True)
@@ -97,7 +108,7 @@ class Updater:
         try: version_request = requests.get(f"{self.RAW_GITHUB_BASE_URL}/__version__.txt")
         except requests.RequestException:
             print(f"\rRequesting the latest version at '{self.RAW_GITHUB_BASE_URL}/__version__.txt'...  Failed!\n", flush=True)
-            print(traceback)
+            traceback.print_exc()
             print("Please ensure you are connected to the internet!")
             exit()
 
@@ -166,7 +177,7 @@ class Updater:
         try: file_request = requests.get(self.STR_UPDATER)
         except requests.RequestException:
             print(f"\rDownloading 'STR/updater.py'...  Failed!\n", flush=True)
-            print(traceback)
+            traceback.print_exc()
             print("Please ensure you are connected to the internet!")
             exit()
 
@@ -188,7 +199,7 @@ class Updater:
         try: file_request = requests.get(f"{self.RAW_GITHUB_BASE_URL}/{filename}")
         except requests.RequestException:
             print(f"\rDownloading '{filename}'...  Failed!\n", flush=True)
-            print(traceback)
+            traceback.print_exc()
             print("Please ensure you are connected to the internet!")
             exit()
 
@@ -218,6 +229,34 @@ class Updater:
         self.install_STR()
 
         print(f"\n{len(self.online_files)} files have been installed over {len(self.installed_files)} files.\nAll updates complete.\n")
+
+    def install_requirements(self) -> None:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+
+    def setup(self) -> None:
+        print(f"First install...  {self.setting_up}.")
+        
+        if not self.setting_up: return
+
+        print("\nInstalling requirements.txt...", end='', flush=True)
+
+        try: self.install_requirements()
+        except:
+            print(f"\rInstalling requirements.txt...  Failed!", flush=True)
+            traceback.print_exc()
+            print("\nDo not worry, the browser has been installed, it just couldn't install the required dependencies with pip.")
+            print("Just install 'requirements.txt' with pip and the browser is good to go!")
+
+        print("\nPip has completed installing the required modules.")
+        print("It may have been unsuccessfull so check the logs above for any error messages.")
+
+    def completion(self) -> None:
+        update_time: float = time() - self.start_time()
+
+        m, s = divmod(update_time, 60)
+        h, m = divmod(m, 60)
+
+        print(f"\nUpdater has completed in: {int(h)}h : {int(m)}m : {int(s)}s.\n")
 
 def main() -> None:
     updater: Updater = Updater()
