@@ -59,6 +59,8 @@ class Updater:
                 with open(f"{self.PATH}/__version__.txt", "w") as version_txt:
                     version_txt.write("0.0.0\nblank")
 
+                self.setup_directories()
+
             else:
                 print("Run the updater if you change your mind.")
                 exit()
