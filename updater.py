@@ -56,8 +56,12 @@ class Updater:
                 print("\nPlease wait while the browser is downloaded and installed on your system.\n")
 
                 # write dummy __version__.txt
+                print("\nCreating dummy '__version__.txt'...  ", end='', flush=True)
+
                 with open(f"{self.PATH}/__version__.txt", "w") as version_txt:
                     version_txt.write("0.0.0\nblank")
+
+                print("\rCreating dummy '__version__.txt'...  Done.", flush=True)
 
                 self.setup_directories()
 
@@ -213,7 +217,7 @@ class Updater:
         self.download_STR()
         self.install_STR()
 
-        print(f"\n{len(self.online_files)} files have been installed over {len(self.installed_files)} files.\nAll updates complete.")
+        print(f"\n{len(self.online_files)} files have been installed over {len(self.installed_files)} files.\nAll updates complete.\n")
 
 def main() -> None:
     updater: Updater = Updater()
