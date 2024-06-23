@@ -135,6 +135,34 @@ class Updater:
         self.parse_online_version()
         self.contrast_differences()
 
+    def run_STR_updater(self) -> None:
+        from Engine.STR.updater import main as update_str
+
+        str_update_path: str = "/Engine/STR"
+        update_str(str_update_path)
+
+    def download_STR(self) -> None:
+        print(f"Downloading 'STR/updater.py'...", end='', flush=True)
+
+        try: file_request = requests.get(self.STR_UPDATER)
+        except requests.RequestException:
+            print(f"\rDownloading 'STR/updater.py'...  Failed!\n", flush=True)
+            print(traceback)
+            print("Please ensure you are connected to the internet!")
+            exit()
+
+        if file_request.status_code >= 400:
+            print(f"\rDownloading 'STR/updater.py'...  ERROR: {file_request.status_code}!\n", flush=True)
+            print("Please ensure you are connected to the internet!")
+            exit()
+
+        print(f"\rDownloading 'STR/updater.py'...  Done.", flush=True)
+
+        print(f"-Installing 'STR/updater.py'...", end='', flush=True)
+        with open(f"{self.PATH}/Engine/STR/updater.py", "wb") as newfile:
+            newfile.write(file_request.content)
+        print(f"\r-Installing 'STR/updater.py'...  Done.", flush=True)
+
     def download_file(self, filename: str) -> None:
         print(f"Downloading '{filename}'...", end='', flush=True)
 
@@ -167,10 +195,8 @@ class Updater:
         for filename in self.online_files:
             self.download_file(filename)
 
-        from Engine.STR.updater import main as update_str
-
-        str_update_path: str = "/Engine/STR"
-        update_str(str_update_path)
+        self.download_STR()
+        self.run_STR_updater()
 
         print(f"\n{len(self.online_files)} files have been installed over {len(self.installed_files)} files.\nAll updates complete.")
 
