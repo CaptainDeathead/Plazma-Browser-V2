@@ -26,7 +26,7 @@ except ModuleNotFoundError:
 
     try: import requests
     except ModuleNotFoundError:
-        print("\nRestarting...")
+        print("\nRestarting...\n")
         subprocess.check_call([sys.executable, "updater.py"])
         exit()
 
