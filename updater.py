@@ -24,6 +24,11 @@ except ModuleNotFoundError:
     print("\nPip has completed installing requests.")
     print("It may have been unsuccessfull so check the logs above for any error messages, if so you need to install requests through pip.")
 
+    try: import requests
+    except ModuleNotFoundError:
+        print("\nFailed to install requests. You need to do it manually through pip and then re-run the updater.\nSorry for the inconveniance.")
+        exit()
+
 import traceback
 from time import time
 from typing import List
