@@ -8,22 +8,7 @@ DO NOT MODIFY THIS CODE AS IT MAY BREAK YOUR INSTALL
 import os
 import subprocess
 import sys
-
-try: import requests
-except ModuleNotFoundError:
-    print("\nInstalling requests.")
-    print("If this fails please install requests manually using pip.")
-
-    try: subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"])
-    except:
-        print("\nFailed installing requests!\n")
-        traceback.print_exc()
-        print("\nPlease install requests using pip")
-        exit()
-
-    print("\nPip has completed installing requests.")
-    print("It may have been unsuccessfull so check the logs above for any error messages, if so you need to install requests through pip.")
-
+import requests
 import traceback
 from time import time
 from typing import List
