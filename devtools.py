@@ -1,9 +1,9 @@
 import pygame as pg
 import logging
 from multiprocessing import Queue
-from Engine.DOM.element import Element
+from Engine.DOM.element import Element, DevtoolsSubElement
 from Ui.scrollbar import VScrollBar
-from typing import List, Tuple
+from typing import List, Tuple, Generator
 from config import DEVTOOLS_WIN_WIDTH, DEVTOOLS_WIN_HEIGHT, DEVTOOLS_BASE_TITLE
 
 # IF PYTHON VERSION == 3.11+ UNCOMMENT THIS LINE AND COMMENT OUT THE OTHER ONE
@@ -42,7 +42,7 @@ class HTMLInspector:
 
     DEPTH_INDENT: int = 10
 
-    FONT: pg.Font = pg.font.Font("./Engine/STR/fonts/arial.ttf", 10)
+    FONT: pg.Font = pg.font.Font("./Engine/STR/fonts/arial.ttf", 15)
 
     def __init__(self, master_element: Element, update_queue: Queue, patch_queue: Queue) -> None:
         logging.debug(f"[DEVTOOLS] Initializing DevTools...")
@@ -62,63 +62,58 @@ class HTMLInspector:
 
         logging.debug("[DEVTOOLS] " + DEVTOOLS_BASE_TITLE + "Welcome! (Queues setup, Pygame display online)")
 
+    def iterative_dfs(self, root: Element) -> Generator[Element, None, None]:
+        if root is None: yield [None]
+
+        stack: List[Element] = [root]
+
+        while len(stack) > 0:
+            node = stack.pop()
+
+            yield node
+
+            stack.extend(reversed(node.children))
+
     def load_element_tree(self) -> None:
         curr_y: int = 0
 
-        nodeStack: List[ElementRepresentation] = []
-        nodeStack.append(self.master_element_representation)
+        for element in self.iterative_dfs(self.master_element):
+            indent: int = element.depth * self.DEPTH_INDENT
 
-        while len(nodeStack) > 0:
-            node = nodeStack.pop()
+            element.devtools_attrs = DevtoolsSubElement(pg.Rect(indent, curr_y, DEVTOOLS_WIN_WIDTH-indent, 20), self.FONT.render(f"<{element.tag}>", True, (255, 255, 255)))
 
-            indent: int = self.DEPTH_INDENT*node.element.depth
-
-            curr_y += 10
-
-            if node.element.children is not None: node.element.children.reverse()
-
-            for childNode in node.element.children:
-                childNodeRepresentation: ElementRepresentation = ElementRepresentation(childNode, pg.Rect(indent, curr_y, DEVTOOLS_WIN_WIDTH-indent, 10),
-                                                                                       self.FONT.render(f"<{childNode.tag}>", True, (255, 255, 255)))
-                node.children.append(childNodeRepresentation)
-                nodeStack.append(childNodeRepresentation)
+            curr_y += 20
 
     def render_element_tree(self) -> None:
         self.display_surface.fill((100, 100, 100))
 
         if self.master_element is None: return
 
-        nodeStack: List[ElementRepresentation] = []
-        nodeStack.append(self.master_element_representation)
-
         mouse_pos = pg.mouse.get_pos()
         mouse_pos = (mouse_pos[0], mouse_pos[1]+self.scroll_y)
         mouse_pressed: bool = pg.mouse.get_pressed()
 
-        while len(nodeStack) > 0:
-            node = nodeStack.pop()
+        for element in self.iterative_dfs(self.master_element):
+            devtools_sub_elem: DevtoolsSubElement = element.devtools_attrs
 
-            if node.rect.y + node.rect.width > self.scroll_y and node.rect.y < self.scroll_y + self.ELEMENT_VIEW_HEIGHT:
+            if devtools_sub_elem.rect.y + devtools_sub_elem.rect.width > self.scroll_y and devtools_sub_elem.rect.y < self.scroll_y + self.ELEMENT_VIEW_HEIGHT:
                 rect_color: Tuple[int, int, int] = (100, 100, 100)
-                node.selected = False
+                devtools_sub_elem.selected = False
                 
-                if node.rect.collidepoint(mouse_pos):
-                    if mouse_pressed: node.selected = True
+                if devtools_sub_elem.rect.collidepoint(mouse_pos):
+                    if mouse_pressed: devtools_sub_elem.selected = True
                     else: rect_color = (150, 150, 150)
 
-                if node.selected: rect_color = (200, 200, 200)
+                if devtools_sub_elem.selected: rect_color = (200, 200, 200)
 
-                if node.rect.y + node.rect.height > self.display_surface.get_height():
+                if devtools_sub_elem.rect.y + devtools_sub_elem.rect.height > self.display_surface.get_height():
                     new_display_surface: pg.Surface = pg.Surface((self.ELEMENT_VIEW_WIDTH, self.display_surface.get_height()+self.ELEMENT_VIEW_HEIGHT))
                     new_display_surface.fill((100, 100, 100))
                     new_display_surface.blit(self.display_surface, (0, 0))
                     self.display_surface = new_display_surface
 
-                pg.draw.rect(self.display_surface, rect_color, node.rect, border_radius=10)
-                self.display_surface.blit(node.font, (node.rect.x + 10, node.rect.y))
-
-            for childNode in node.children:
-                nodeStack.append(childNode)
+                pg.draw.rect(self.display_surface, rect_color, devtools_sub_elem.rect, border_radius=2)
+                self.display_surface.blit(devtools_sub_elem.font, (devtools_sub_elem.rect.x + 10, devtools_sub_elem.rect.y))
 
     def render(self) -> None:
         self.render_element_tree()

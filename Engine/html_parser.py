@@ -245,7 +245,7 @@ class HTMLParser:
         self.styled_text.total_y += surface_under_rect.height
         
     def parseHTML(self, html: str, thread_id: int = 0) -> Document | None:
-        html = "<plazma-browser>" + html + "</plazma-browser>"
+        html = "<plazma-browser>\n" + html + "\n</plazma-browser>"
 
         soup = BeautifulSoup(html, 'html.parser')
 

@@ -10,6 +10,14 @@ from config import WIN_WIDTH, WIN_HEIGHT, LINK_NORMAL_COLOR, PRESSED_LINK_COLOR
 # IF PYTHON VERSION < 3.11
 from typing_extensions import Self
 
+class DevtoolsSubElement:
+    def __init__(self, rect: pg.Rect, font: pg.Surface) -> None:
+        self.rect: pg.Rect = rect
+        self.font: pg.Surface = font
+
+        self.selected: bool = False
+        self.clicked: bool = False
+
 class Element:
     def __init__(self, tag: str, attributes: Dict, rect: pg.Rect, rect_unused: pg.Rect, styles: Dict[str, any] = {},
                  width: int = WIN_WIDTH, height: int = WIN_HEIGHT, parent: Self = None, inline_index: int = 0,
@@ -28,6 +36,8 @@ class Element:
         # surface and render attributes
         self.max_width: int = width
         self.max_height: int = height
+
+        self.devtools_attrs: DevtoolsSubElement = None
         
         self.rect: pg.Rect = rect
         self.rect_unused: pg.Rect = rect_unused

@@ -48,7 +48,7 @@ LINK_NORMAL_COLOR: Tuple[int, int, int] = (65, 145, 245)
 PRESSED_LINK_COLOR: Tuple[int, int, int] = (35, 170, 35)
 
 # testing
-BROWSER_TEST_URL: str = "https://en.wikipedia.org/wiki/web_browser"
+#BROWSER_TEST_URL: str = "https://en.wikipedia.org/wiki/web_browser"
 #BROWSER_TEST_URL: str = "https://en.wikipedia.org/wiki/elon_musk"
 #BROWSER_TEST_URL: str = "https://google.com"
-#BROWSER_TEST_URL: str = "file://test.html"
+BROWSER_TEST_URL: str = "file://test.html"
