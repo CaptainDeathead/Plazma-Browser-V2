@@ -12,7 +12,7 @@ HTML_LOAD_THREAD: bool = True
 DEBUG_MODE: bool = True
 DEVTOOLS_ENABLED: bool = True
 SHOW_PRIMARY_SURFACE_CONTAINERS: bool = False
-SHOW_ALL_SURFACE_CONTAINERS: bool = True
+SHOW_ALL_SURFACE_CONTAINERS: bool = False
 
 # devtools settings
 DEVTOOLS_WIN_WIDTH: int = 800

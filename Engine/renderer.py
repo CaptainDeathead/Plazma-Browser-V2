@@ -101,7 +101,7 @@ class Renderer:
 
         return hand_cursor
 
-    def search_children_iterative_preoder_traversal(self, element: Element) -> bool:
+    def search_children_depth_first_search(self, element: Element) -> bool:
         if element == None: return False
 
         root: Element = element
@@ -120,8 +120,7 @@ class Renderer:
 
             # only update children if parent is hovered
             if node.hovered:
-                for childNode in node.children:
-                    nodeStack.append(childNode)
+                nodeStack.extend(reversed(node.children))
 
         return hand_cursor
 
@@ -133,7 +132,7 @@ class Renderer:
 
         self.reset_devtools()
 
-        hand_cursor: bool = self.search_children_iterative_preoder_traversal(self.html_parser.document.html_element)
+        hand_cursor: bool = self.search_children_depth_first_search(self.html_parser.document.html_element)
 
         if hand_cursor:
             if self.mouse_type != pg.SYSTEM_CURSOR_HAND: self.mouse_type = pg.SYSTEM_CURSOR_HAND
