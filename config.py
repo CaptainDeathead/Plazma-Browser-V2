@@ -6,11 +6,11 @@ WIN_HEIGHT: int = 900
 
 BUTTON_SCROLL_INCREMENT: int = 100
 
-HTML_LOAD_THREAD: bool = True
+HTML_LOAD_THREAD: bool = False
 
 
 DEBUG_MODE: bool = True
-DEVTOOLS_ENABLED: bool = True
+DEVTOOLS_ENABLED: bool = False
 SHOW_PRIMARY_SURFACE_CONTAINERS: bool = False
 SHOW_ALL_SURFACE_CONTAINERS: bool = False
 
@@ -49,6 +49,6 @@ PRESSED_LINK_COLOR: Tuple[int, int, int] = (35, 170, 35)
 
 # testing
 #BROWSER_TEST_URL: str = "https://en.wikipedia.org/wiki/web_browser"
-#BROWSER_TEST_URL: str = "https://en.wikipedia.org/wiki/elon_musk"
+BROWSER_TEST_URL: str = "https://en.wikipedia.org/wiki/elon_musk"
 #BROWSER_TEST_URL: str = "https://google.com"
-BROWSER_TEST_URL: str = "file://test.html"
+#BROWSER_TEST_URL: str = "file://test.html"

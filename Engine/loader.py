@@ -7,7 +7,7 @@ from config import HTML_LOAD_THREAD
 from Engine.threads import LoaderThread
 from typing import Dict
 from fake_useragent import UserAgent
-from Engine.url_utils import remove_whitespace, set_browser_url
+from Engine.Utils.url_utils import remove_whitespace, set_browser_url
 
 USER_AGENT: str = UserAgent().chrome
 loader_thread: LoaderThread = None

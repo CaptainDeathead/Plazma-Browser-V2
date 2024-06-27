@@ -1,14 +1,18 @@
 import pygame as pg
 from typing import Dict, List, Tuple
-from Ui.elements import INLINE_ELEMENTS
-from Engine.url_utils import resolve_url_in_browser_ctx
-from config import WIN_WIDTH, WIN_HEIGHT, LINK_NORMAL_COLOR, PRESSED_LINK_COLOR
+from Ui.elements import INLINE_ELEMENTS, TEXT_TAGS, DEFUALT_COLOR
+from Engine.Utils.url_utils import resolve_url_in_browser_ctx
+from Engine.STR.renderer import StyledText
+from config import WIN_WIDTH, WIN_HEIGHT, LINK_NORMAL_COLOR
 
 # IF PYTHON VERSION == 3.11+ UNCOMMENT THIS LINE AND COMMENT OUT THE OTHER ONE
 #from typing import Self
 
 # IF PYTHON VERSION < 3.11
 from typing_extensions import Self
+
+def darken_color(color: Tuple[int, int, int]) -> Tuple[int, int, int]:
+    return (color[0]//2, color[1]//2, color[2]//2)
 
 class DevtoolsSubElement:
     def __init__(self, rect: pg.Rect, font: pg.Surface) -> None:
@@ -19,15 +23,19 @@ class DevtoolsSubElement:
         self.clicked: bool = False
 
 class Element:
-    def __init__(self, tag: str, attributes: Dict, rect: pg.Rect, rect_unused: pg.Rect, styles: Dict[str, any] = {},
-                 width: int = WIN_WIDTH, height: int = WIN_HEIGHT, parent: Self = None, inline_index: int = 0,
-                 depth: int = 0) -> None:
+    def __init__(self, tag: str, attributes: Dict, styles: Dict[str, any] = {}, width: int = WIN_WIDTH, height: int = WIN_HEIGHT,
+                 parent: Self = None, inline_index: int = 0, depth: int = 0) -> None:
         
         self.tag: str = tag
         self.attributes: Dict = attributes
         self.children: List[Self] = []
         self.parent: Element = parent
 
+        self.htmltype: Dict[str, bool] = self.get_type()
+
+        self.setup_color()
+
+        self.render_function: callable = self.null_render()
         self.update_function: callable = self.null_update()
 
         self.inline_index: int = inline_index
@@ -39,8 +47,8 @@ class Element:
 
         self.devtools_attrs: DevtoolsSubElement = None
         
-        self.rect: pg.Rect = rect
-        self.rect_unused: pg.Rect = rect_unused
+        self.rect: pg.Rect = pg.Rect(0, 0, 0, 0)
+        self.rect_unused: pg.Rect = pg.Rect(0, 0, 0, 0)
         
         self.hovered: bool = False
         self.pressed: bool = False
@@ -59,10 +67,36 @@ class Element:
 
         self.url_redirect: str = ""
 
+        self.get_render_function()
         self.get_update_function()
 
+    def get_type(self) -> Dict[str, bool]:
+        htmltype: Dict[str, bool] = {
+            "text": False,
+            "link": False
+        }
+
+        if self.tag in TEXT_TAGS: htmltype["text"] = True
+        if self.tag == "a": htmltype["link"] = True
+
+        return htmltype
+    
+    def setup_color(self) -> None:
+        self.color: Tuple[int, int, int] = self.attributes.get("color", None)
+
+        self.LINK_NORMAL_COLOR: Tuple[int, int, int] = self.attributes.get("color", LINK_NORMAL_COLOR)
+        self.PRESSED_LINK_COLOR: Tuple[int, int, int] = self.attributes.get("plazma_browser_hovered_color", darken_color(self.LINK_NORMAL_COLOR))
+
+        if self.color == None:
+            if self.htmltype["link"]: self.color = self.LINK_NORMAL_COLOR
+            else: self.color = DEFUALT_COLOR
+
+    def get_render_function(self) -> None:
+        if self.htmltype["text"]: self.render_function = self.render_text
+        else: self.update_function = self.null_render
+
     def get_update_function(self) -> None:
-        if self.tag == "a": self.update_function = self.update_link
+        if self.htmltype["link"]: self.update_function = self.update_link
         else: self.update_function = self.null_update
 
     def resize_family_rects(self, parent: Self) -> None:
@@ -91,6 +125,24 @@ class Element:
             if key == "hovered": self.hovered = status[key]
             elif key == "pressed": self.pressed = status[key]
 
+    def null_render(self, *args, **kwargs) -> None:
+        return None
+    
+    def render_text(self, styled_text: StyledText, x: int, y: int) -> None:
+        text: str = self.attributes.get("text")
+        font: Tuple[str, int] = (self.styles["font-name"], self.styles["font-size"])
+        font_type: Tuple[bool, bool, bool] = (self.styles["bold"], self.styles["italic"], self.styles["underline"])
+        color: Tuple[int, int, int] = self.color
+        bg_color: Tuple[int, int, int] = self.styles["background-color"]
+        ...
+        padding_y: int = 2
+
+        self.rect, self.rect_unused = styled_text.renderStyledText(text, font, font_type, color, bg_color, x, y, self.max_width, self.max_height, padding_y)
+
+    def render(self, styled_text: StyledText, x: int, y: int) -> None:
+        # TODO: Make render function here
+        self.render_function(styled_text, x, y)
+
     def update(self) -> Tuple[bool, bool]:
         self.update_function()
 
@@ -108,12 +160,12 @@ class Element:
             self.clicked = False
 
         if self.pressed:
-            if self.styles["color"] != PRESSED_LINK_COLOR:
-                self.style_overides["color"] = PRESSED_LINK_COLOR
+            if self.color != self.PRESSED_LINK_COLOR:
+                self.style_overides["color"] = self.PRESSED_LINK_COLOR
                 self.reload_required = True
         else:
-            if self.styles["color"] != LINK_NORMAL_COLOR:
-                self.style_overides["color"] = LINK_NORMAL_COLOR
+            if self.color != self.LINK_NORMAL_COLOR:
+                self.style_overides["color"] = self.LINK_NORMAL_COLOR
                 self.reload_required = True
 
     def null_update(self) -> None:

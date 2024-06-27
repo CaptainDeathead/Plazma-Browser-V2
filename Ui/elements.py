@@ -1,8 +1,6 @@
 import pygame as pg
 import pygame_gui as pgu
-from pygame_gui.core import ObjectID
-from pygame_gui import elements
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from logging import warning
 
 def set_title(relative_rect: pg.Rect = None, manager: pgu.UIManager = None, element_id: str = '', element_class: str = '', options: Dict = {"text": ""}):
@@ -38,3 +36,6 @@ INLINE_ELEMENTS: List[str] = ["a", "abbr", "acronym", "b", "bdo", "big", "br", "
                               "code", "dfn", "em", "i", "img", "input", "kbd", "label", "map",
                               "object", "output", "q", "samp", "script", "select", "small", "span",
                               "strong", "sub", "sup", "textarea", "time", "tt", "var", "browser_text"]
+
+DEFUALT_COLOR: Tuple[int, int, int] = (0, 0, 0)
+DEFUALT_BG_COLOR: Tuple[int, int, int] = (255, 255, 255)

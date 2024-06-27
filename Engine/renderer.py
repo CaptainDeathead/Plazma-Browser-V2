@@ -2,16 +2,18 @@ import pygame as pg
 import pygame_gui as pgu
 from Engine.DOM.document import Document
 from Engine.DOM.element import Element
-from Engine.html_parser import HTMLParser
 from Engine.STR.renderer import StyledText
+from Engine.html_parser import HTMLParser
+from Engine.css_parser import CSSParser
 from typing import List, Tuple
 from config import SHOW_ALL_SURFACE_CONTAINERS
 
 class Renderer:
     def __init__(self, manager: pgu.UIManager, width: int, height: int, load_page: callable):
         self.manager: pgu.UIManager = manager
-        self.styled_text: StyledText = StyledText("\n", width, height, (0, 0, 0), (255, 255, 255), "Arial", 16, (2, 20, 2, 20))
-        self.html_parser: HTMLParser = HTMLParser(self.manager, self.styled_text, width, height)
+        self.styled_text: StyledText = StyledText("\n", width, height, False)
+        self.css_parser: CSSParser = CSSParser(width, height)
+        self.html_parser: HTMLParser = HTMLParser(self.manager, self.styled_text, self.css_parser, width, height)
         self.display_surf: pg.Surface = pg.Surface((width, height))
         self.dev_tools_surface: pg.Surface = pg.Surface((width, height), pg.SRCALPHA, 32)
         self.load_page: callable = load_page
