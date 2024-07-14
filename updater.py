@@ -41,7 +41,7 @@ class Updater:
     STR_UPDATER: str = "https://raw.githubusercontent.com/CaptainDeathead/Plazma-Styled-Text-Renderer/main/updater.py"
 
     DIRECTOY_MAP: List[str] = [
-        f"{PATH}/Engine", f"{PATH}/Engine/DOM", f"{PATH}/Engine/STR",f"{PATH}/Engine/STR/fonts",
+        f"{PATH}/Engine" f"{PATH}/Engine/Utils", f"{PATH}/Engine/DOM", f"{PATH}/Engine/STR",f"{PATH}/Engine/STR/fonts",
         f"{PATH}/Pages", f"{PATH}/Pages/Error", f"{PATH}/Ui"
     ]
 
