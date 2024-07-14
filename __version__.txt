@@ -1,13 +1,15 @@
-0.1.0dev
+0.1.1dev
 __version__.txt
 Engine/DOM/document.py
 Engine/DOM/element.py
 Engine/DOM/window.py
+Engine/Utils/url_utils.py
+Engine/Utils/utils.py
 Engine/html_parser.py
 Engine/loader.py
 Engine/renderer.py
 Engine/threads.py
-Engine/url_utils.py
+Engine/css_parser.py
 Pages/Error/connection_error.html
 Pages/Error/file_not_found.html
 Pages/Error/http_error.html
@@ -18,6 +20,8 @@ Ui/button.py
 Ui/elements.py
 Ui/scrollbar.py
 Ui/search_bar.py
+.gitignore
+.gitmodules
 config.py
 devtools.py
 exceptions.py
