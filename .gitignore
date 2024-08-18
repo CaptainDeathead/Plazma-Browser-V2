@@ -1,6 +1,6 @@
 **/__pycache__/
 .vscode/
-**/.venv/
+.venv/
 .idea
 main.pstats
 output.png
