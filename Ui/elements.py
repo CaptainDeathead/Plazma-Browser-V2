@@ -37,5 +37,21 @@ INLINE_ELEMENTS: List[str] = ["a", "abbr", "acronym", "b", "bdo", "big", "br", "
                               "object", "output", "q", "samp", "script", "select", "small", "span",
                               "strong", "sub", "sup", "textarea", "time", "tt", "var", "browser_text"]
 
-DEFUALT_COLOR: Tuple[int, int, int] = (0, 0, 0)
-DEFUALT_BG_COLOR: Tuple[int, int, int] = (255, 255, 255)
+DEFAULT_COLOR: Tuple[int, int, int] = (0, 0, 0)
+DEFAULT_BG_COLOR: Tuple[int, int, int] = (255, 255, 255)
+DEFAULT_FONT: Tuple[str, int] = ("arial", 18)
+DEFAULT_PADDING: Tuple[int, int, int, int] = (2, 0, 0, 10) # 0: top, 1: right, 2: bottom, 3: left
+
+DEFAULT_STYLES: Dict[str, any] = {
+    'color': DEFAULT_COLOR,
+    'background-color': DEFAULT_BG_COLOR,
+    'font-name': DEFAULT_FONT[0],
+    'font-size': DEFAULT_FONT[1],
+    'padding': DEFAULT_PADDING, # 0: top, 1: right, 2: bottom, 3: left
+
+    'bold': False,
+    'italic': False,
+    'underline': False,
+
+    'link': False
+}

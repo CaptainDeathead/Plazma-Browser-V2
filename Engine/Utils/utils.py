@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Dict
 
 def containsnum(string: str) -> bool:
     for i in range(10):
@@ -73,3 +73,10 @@ def remove_units(num_str: str, tag_size: float, parent_size: float, view_width: 
     # Style not found    
     if type(tag_size) == str: return 16
     else: return tag_size
+
+def merge_secondary_dict(dict1: Dict[any, any], dict2: Dict[any, any]) -> Dict[any, any]:
+    for key in dict2:
+        if key not in dict1:
+            dict1[key] = dict2[key]
+
+    return dict1

@@ -1,6 +1,7 @@
 import pygame as pg
 from typing import Dict, List, Tuple
-from Ui.elements import INLINE_ELEMENTS, TEXT_TAGS, DEFUALT_COLOR
+from Ui.elements import INLINE_ELEMENTS, TEXT_TAGS, DEFAULT_STYLES
+from Engine.Utils.utils import merge_secondary_dict
 from Engine.Utils.url_utils import resolve_url_in_browser_ctx
 from Engine.STR.renderer import StyledText
 from config import WIN_WIDTH, WIN_HEIGHT, LINK_NORMAL_COLOR
@@ -35,8 +36,8 @@ class Element:
 
         self.setup_color()
 
-        self.render_function: callable = self.null_render()
-        self.update_function: callable = self.null_update()
+        self.render_function: callable = self.null_render
+        self.update_function: callable = self.null_update
 
         self.inline_index: int = inline_index
         self.depth: int = depth
@@ -56,7 +57,7 @@ class Element:
 
         self.isinline: bool = self.tag in INLINE_ELEMENTS
 
-        self.styles: Dict[str, any] = styles
+        self.styles: Dict[str, any] = merge_secondary_dict(styles, DEFAULT_STYLES)
 
         self.scroll_x: float = 0.0
         self.scroll_y: float = 0.0
@@ -89,7 +90,7 @@ class Element:
 
         if self.color == None:
             if self.htmltype["link"]: self.color = self.LINK_NORMAL_COLOR
-            else: self.color = DEFUALT_COLOR
+            else: self.color = DEFAULT_STYLES["color"]
 
     def get_render_function(self) -> None:
         if self.htmltype["text"]: self.render_function = self.render_text
@@ -130,7 +131,7 @@ class Element:
     
     def render_text(self, styled_text: StyledText, x: int, y: int) -> None:
         text: str = self.attributes.get("text")
-        font: Tuple[str, int] = (self.styles["font-name"], self.styles["font-size"])
+        font: Tuple[str, int] = (self.styles["font-name"], int(self.styles["font-size"]))
         font_type: Tuple[bool, bool, bool] = (self.styles["bold"], self.styles["italic"], self.styles["underline"])
         color: Tuple[int, int, int] = self.color
         bg_color: Tuple[int, int, int] = self.styles["background-color"]

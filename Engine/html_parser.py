@@ -149,6 +149,8 @@ class HTMLParser:
                     
                     new_element: Element = Element(child_tag.name, child_tag.attrs, tag_styles, element_width,
                                                 element_height, parent_element, inline_elements, depth)
+                    
+                    new_element.render(self.styled_text, 0, 0)
 
                     new_element.resize_family_rects(parent_element)
 
