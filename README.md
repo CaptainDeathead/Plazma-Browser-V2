@@ -29,7 +29,7 @@ This can be done due to finding and replacing the portion of the render surface 
 
 ### Plans
 
-I have many plans for Plazma Browser, and as you can see from version 1 there are many improvements to the HTML structure, stability and readability of the browser!
+I have many plans for Plazma Browser, and as you can see from [version 1](https://www.github.com/captaindeathead/plazma-browser) there are many improvements to the HTML structure, stability and readability of the browser!
 
 At this stage I am dedicated to building a solid foundation for the renderer and making the browser as efficient and portable.
 
